@@ -1,0 +1,19 @@
+{
+  "name": "kittys-next-move",
+  "version": "2.0.0",
+  "description": "Kitty's Next Move — Telegram Mini App for @unityoneth | Monthly 1T UNITY reward",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": { "node": ">=18.0.0" }
+}
