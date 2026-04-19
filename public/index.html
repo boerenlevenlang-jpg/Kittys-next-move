@@ -8,10 +8,26 @@ html,body{background:#000;width:100%;overflow-x:hidden}
 body{display:flex;flex-direction:column;align-items:center}
 #wrap{position:relative;width:100%;max-width:680px}
 #bg{display:block;width:100%;height:auto}
-#gc{position:absolute;cursor:none;touch-action:none}
+#gc{position:absolute;cursor:none;touch-action:none;transition:all 0.3s ease}
 #rules-overlay{position:absolute;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;}
 #skip-btn{position:absolute;z-index:200;cursor:pointer}
 #links-desktop{position:absolute}
+
+#exit-game-btn{
+  display:none;
+  position:fixed;
+  top:8px;right:8px;
+  z-index:1001;
+  background:rgba(0,0,0,0.75);
+  border:1px solid #444;
+  color:#fff;
+  font-family:'Bebas Neue',monospace;
+  font-size:13px;
+  letter-spacing:1px;
+  padding:7px 14px;
+  border-radius:4px;
+  cursor:pointer;
+}
 </style>
 </head><body>
 <div id="wrap">
@@ -329,11 +345,25 @@ function drawCutscene(){
     if(curScreen>=SCREENS.length){
       cutsceneDone=true;
       X.fillStyle='#060606';X.fillRect(0,0,W,H);
-      document.getElementById('rules-overlay').style.display='flex';
+      const _ro2=document.getElementById('rules-overlay');
+    _ro2.style.display='flex';
+    if(isMobile()){
+      const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
+      const _h=Math.round(_vw*_ratio),_top=Math.max(0,Math.round((_vh-_h)/2));
+      _ro2.style.position='fixed';_ro2.style.left='0';_ro2.style.top=_top+'px';
+      _ro2.style.width=_vw+'px';_ro2.style.height=_h+'px';_ro2.style.zIndex='1000';
+    }
       return;
     }
   }
-  if(curScreen>=SCREENS.length){cutsceneDone=true;document.getElementById('rules-overlay').style.display='flex';return;}
+  if(curScreen>=SCREENS.length){cutsceneDone=true;const _ro2=document.getElementById('rules-overlay');
+    _ro2.style.display='flex';
+    if(isMobile()){
+      const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
+      const _h=Math.round(_vw*_ratio),_top=Math.max(0,Math.round((_vh-_h)/2));
+      _ro2.style.position='fixed';_ro2.style.left='0';_ro2.style.top=_top+'px';
+      _ro2.style.width=_vw+'px';_ro2.style.height=_h+'px';_ro2.style.zIndex='1000';
+    }return;}
   const sc2=SCREENS[curScreen];
   if(!sc2){cutsceneDone=true;return;}
   const p=screenFrame/sc2.dur;
@@ -390,6 +420,9 @@ function daysLeftStr(){
 /* ── Game Over overlay ── */
 function showGameOver(){
   gameOver=true;
+  submitScore(score, wave, uCount);
+  exitMobileGame();
+  document.getElementById("exit-game-btn").style.display="none";
   const ov=document.createElement('div');
   ov.id='go-overlay';
   const _s=document.getElementById('wrap').offsetWidth/680;ov.style.cssText='position:absolute;top:'+(236*_s)+'px;left:'+(101*_s)+'px;width:'+(478*_s)+'px;height:'+(310*_s)+'px;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Bebas Neue",monospace;z-index:99';
@@ -451,6 +484,109 @@ function updateLinksVisibility(){
 }
 window.addEventListener('resize',updateLinksVisibility);
 
+
+/* ── Score submission to server ── */
+let _tgUser = null;
+try {
+  if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe){
+    _tgUser = window.Telegram.WebApp.initDataUnsafe.user || null;
+  }
+} catch(e){}
+
+function getPlayerId(){
+  if(_tgUser && _tgUser.id) return String(_tgUser.id);
+  // Fallback: generate a session ID
+  if(!localStorage.getItem('unity_pid')){
+    localStorage.setItem('unity_pid', 'anon_'+Math.random().toString(36).slice(2,10));
+  }
+  return localStorage.getItem('unity_pid');
+}
+
+function getPlayerName(){
+  if(_tgUser){
+    return _tgUser.username || _tgUser.first_name || 'Player';
+  }
+  return 'Player';
+}
+
+async function submitScore(score, wave, uCount){
+  try{
+    await fetch('/api/score',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        playerId: getPlayerId(),
+        playerName: getPlayerName(),
+        score, wave, uCount
+      })
+    });
+  } catch(e){ console.log('Score submit failed:', e); }
+}
+
+
+/* ── Mobile fullscreen game (ratio preserved) ── */
+function isMobile(){ return window.innerWidth <= 700; }
+
+function enterMobileGame(){
+  if(!isMobile()) return;
+  const gc = document.getElementById('gc');
+  const ro = document.getElementById('rules-overlay');
+  const ratio = 310/478; // natural canvas ratio
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const w = vw;
+  const h = Math.round(w * ratio);
+  const top = Math.max(0, Math.round((vh - h) / 2));
+
+  // Position gc fixed, full width, correct ratio
+  gc._mob = {position:gc.style.position,left:gc.style.left,top:gc.style.top,width:gc.style.width,height:gc.style.height,zIndex:gc.style.zIndex};
+  gc.style.position = 'fixed';
+  gc.style.left = '0';
+  gc.style.top = top + 'px';
+  gc.style.width = w + 'px';
+  gc.style.height = h + 'px';
+  gc.style.zIndex = '1000';
+
+  document.body.style.overflow = 'hidden';
+  document.getElementById('exit-game-btn').style.display = 'block';
+}
+
+function exitMobileGame(){
+  const gc = document.getElementById('gc');
+  if(gc._mob){
+    gc.style.position = 'absolute';
+    gc.style.left = gc._mob.left;
+    gc.style.top = gc._mob.top;
+    gc.style.width = gc._mob.width;
+    gc.style.height = gc._mob.height;
+    gc.style.zIndex = gc._mob.zIndex || '';
+  }
+  document.body.style.overflow = '';
+  document.getElementById('exit-game-btn').style.display = 'none';
+  // Pause game
+  gameStarted = false;
+  showPauseOverlay();
+}
+
+function showPauseOverlay(){
+  const ro = document.getElementById('rules-overlay');
+  ro.style.display = 'flex';
+  ro.innerHTML = `
+    <div style="color:#f5c842;font-size:22px;letter-spacing:3px;margin-bottom:12px">PAUSED</div>
+    <div style="color:#aaa;font-size:13px;margin-bottom:20px;letter-spacing:1px">Score: ${score.toLocaleString()}</div>
+    <button onclick="resumeMobileGame()" style="font-family:'Bebas Neue',monospace;font-size:16px;letter-spacing:2px;background:#cc0000;color:#fff;border:none;border-bottom:3px solid #880000;padding:10px 0;border-radius:4px;cursor:pointer;width:100%;margin-bottom:10px">RESUME</button>
+    <button onclick="location.reload()" style="font-family:'Bebas Neue',monospace;font-size:14px;letter-spacing:2px;background:#222;color:#aaa;border:1px solid #444;padding:8px 0;border-radius:4px;cursor:pointer;width:100%">QUIT</button>
+  `;
+}
+
+function resumeMobileGame(){
+  const ro = document.getElementById('rules-overlay');
+  ro.style.display = 'none';
+  gameStarted = true;
+  enterMobileGame();
+  loop();
+}
+
 let tickerX=0;
 const tks=['$UNITY +741% ▲','GME: AVOID','ETH MAINNET','DIAMOND HANDS','CONNECT THE DOTS','SIGNAL DETECTED'];
 
@@ -459,12 +595,20 @@ function skipToRules(){
     cutsceneDone=true;
     X.fillStyle='#060606';X.fillRect(0,0,W,H);
     document.getElementById('skip-btn').style.display='none';
-    document.getElementById('rules-overlay').style.display='flex';
+    const _ro2=document.getElementById('rules-overlay');
+    _ro2.style.display='flex';
+    if(isMobile()){
+      const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
+      const _h=Math.round(_vw*_ratio),_top=Math.max(0,Math.round((_vh-_h)/2));
+      _ro2.style.position='fixed';_ro2.style.left='0';_ro2.style.top=_top+'px';
+      _ro2.style.width=_vw+'px';_ro2.style.height=_h+'px';_ro2.style.zIndex='1000';
+    }
   }
 }
 
 function startGame(){
   gameOver=false;
+  enterMobileGame();
   document.getElementById('rules-overlay').style.display='none';
   gameStarted=true;
   const sb=document.getElementById('skip-btn');if(sb)sb.style.display='none';
@@ -553,4 +697,5 @@ if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData){
 <div id="browser-btn" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:500;display:none;">
   <span onclick="openInBrowser()" style="font-family:'Bebas Neue',monospace;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);padding:6px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;display:block;">&#127760; Open in Browser</span>
 </div>
+<div id="exit-game-btn" onclick="exitMobileGame()">✕ EXIT</div>
 </body></html>
