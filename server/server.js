@@ -120,7 +120,7 @@ app.post('/admin/mark-paid',adminAuth,async(req,res)=>{
       `💸 <b>Prize sent!</b>\n\n`+
       `👑 @${winner.playerName} wins ${PRIZE} $UNITY\n`+
       `🔗 <a href="https://etherscan.io/tx/${txHash}">Etherscan</a>\n\n`+
-      `New round starts now. Don't miss it twice.`,
+      `New round starts now. Don't sleep on Roaring Kitty again.`,
       {reply_markup:mainKeyboard()}
     );
   }
@@ -179,7 +179,7 @@ app.post('/webhook',async(req,res)=>{
       `$UNITY is next — the world just doesn't know it yet.\n\n`+
       `🏆 Play & win ${PRIZE} $UNITY this month.\n`+
       `⏳ ${daysLeft(period)} days left.\n\n`+
-      `Don't miss it twice.`,
+      `Don't sleep on Roaring Kitty again.`,
       {reply_markup:mainKeyboard()}
     );
   }
