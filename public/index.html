@@ -452,7 +452,7 @@ function showGameOver(){
   ov.id='go-overlay';
   const _mob=window.innerWidth<=600;
   const _pos=_mob?'position:fixed;top:0;left:0;width:100vw;height:100vh;':'position:absolute;top:236px;left:101px;width:478px;height:310px;';
-  ov.style.cssText=_pos+background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Bebas Neue",monospace;z-index:99';
+  ov.style.cssText=_pos+'background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Bebas Neue",monospace;z-index:99';
   const tweet='I just scored '+score.toLocaleString()+' $UNITY in Kitty%27s Next Move 🐱%0AThe signal didn%27t disappear. It moved.%0A%40Unity_on_eth';
   const tweetUrl='https://x.com/intent/tweet?text='+tweet;
   ov.innerHTML=`
