@@ -1,54 +1,17 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@700&display=swap" rel="stylesheet">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:#000;width:100%;height:100%;overflow:hidden}
-body{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-
-/* ── DESKTOP layout ── */
-#wrap{position:relative;width:680px;flex-shrink:0}
-#bg{display:block;width:680px;height:907px}
-#gc{position:absolute;top:236px;left:101px;width:478px;height:310px;cursor:none;touch-action:none}
-#rules-overlay{position:absolute;top:236px;left:101px;width:478px;height:310px}
-#skip-btn{position:absolute;top:240px;right:106px;z-index:60}
-.links-bar{width:680px}
-
-/* ── MOBILE layout (portrait phones) ── */
-@media(max-width:600px){
-  html,body{overflow:hidden;height:100vh}
-  #wrap{width:100vw;height:100vh;overflow:hidden}
-  #bg{display:none !important}
-  #gc{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    width:100vw !important;
-    height:100vh !important;
-    z-index:10;
-  }
-  #rules-overlay{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    width:100vw !important;
-    height:100vh !important;
-    z-index:50;
-    padding:24px 20px !important;
-    font-size:14px;
-  }
-  #skip-btn{position:fixed !important;top:10px !important;right:10px !important;z-index:200}
-  #zoom-btn{display:none !important}
-  .links-bar{display:none}
-  #go-overlay{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    width:100vw !important;
-    height:100vh !important;
-  }
-}
+html,body{background:#000;width:100%}
+body{display:flex;flex-direction:column;align-items:center}
+#wrap{position:relative;width:100%;max-width:680px}
+#bg{display:block;width:100%;height:auto}
+#gc{position:absolute;cursor:none;touch-action:none}
+.links-bar{width:100%;max-width:680px}
+#rules-overlay{position:absolute}
+#skip-btn{position:absolute;z-index:60}
 </style>
 </head><body>
 <div id="wrap">
@@ -158,7 +121,7 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 /* ── Mobile zoom into game screen ── */
 function isMobile(){return window.innerWidth<=600;}
 
-function zoomIntoGame(){if(window.innerWidth<=600)return; // CSS handles mobile
+function zoomIntoGame(){
   if(!isMobile())return;
   const wrap=document.getElementById('wrap');
   const wrapW=wrap.offsetWidth;
@@ -186,7 +149,7 @@ function zoomIntoGame(){if(window.innerWidth<=600)return; // CSS handles mobile
   document.body.style.height=viewH+'px';
 }
 
-function zoomOut(){if(window.innerWidth<=600)return;
+function zoomOut(){
   const wrap=document.getElementById('wrap');
   wrap.style.transform='none';
   wrap.style.transformOrigin='top center';
@@ -198,7 +161,7 @@ function zoomOut(){if(window.innerWidth<=600)return;
 const ORIG_W=680, ORIG_H=907;
 const SCREEN={left:101,top:236,width:478,height:310};
 
-function positionGameCanvas(){if(window.innerWidth<=600)return;
+function positionGameCanvas(){
   const wrap=document.getElementById('wrap');
   const scale=wrap.offsetWidth/ORIG_W;
   const gc=document.getElementById('gc');
@@ -448,11 +411,15 @@ function daysLeftStr(){
 function showGameOver(){
   gameOver=true;
   zoomOut();
+  const _wrap=document.getElementById('wrap');
+  const _scale=_wrap.offsetWidth/680;
+  const gcTop=Math.round(236*_scale);
+  const gcLeft=Math.round(101*_scale);
+  const gcW=Math.round(478*_scale);
+  const gcH=Math.round(310*_scale);
   const ov=document.createElement('div');
   ov.id='go-overlay';
-  const _mob=window.innerWidth<=600;
-  const _pos=_mob?'position:fixed;top:0;left:0;width:100vw;height:100vh;':'position:absolute;top:236px;left:101px;width:478px;height:310px;';
-  ov.style.cssText=_pos+'background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Bebas Neue",monospace;z-index:99';
+  ov.style.cssText='position:absolute;top:'+gcTop+'px;left:'+gcLeft+'px;width:'+gcW+'px;height:'+gcH+'px;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Bebas Neue",monospace;z-index:99';
   const tweet='I just scored '+score.toLocaleString()+' $UNITY in Kitty%27s Next Move 🐱%0AThe signal didn%27t disappear. It moved.%0A%40Unity_on_eth';
   const tweetUrl='https://x.com/intent/tweet?text='+tweet;
   ov.innerHTML=`
@@ -572,22 +539,5 @@ C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mx=Math.max
 C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect();mx=Math.max(18,Math.min(W-18,(e.touches[0].clientX-r.left)*(W/r.width)));my=Math.max(28,Math.min(H-22,(e.touches[0].clientY-r.top)*(H/r.height)));},{passive:false});
 loop();
 </script>
-
-<div id="zoom-btn" onclick="toggleZoom()" style="
-  display:none;
-  position:fixed;
-  bottom:16px;
-  right:16px;
-  z-index:999;
-  background:rgba(0,0,0,0.7);
-  border:1px solid #555;
-  border-radius:50%;
-  width:44px;
-  height:44px;
-  font-size:20px;
-  line-height:44px;
-  text-align:center;
-  cursor:pointer;
-">🔍</div>
 
 </body></html>
