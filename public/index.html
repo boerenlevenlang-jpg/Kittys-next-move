@@ -423,7 +423,7 @@ function showGameOver(){
     <div style="color:#888;font-size:11px;letter-spacing:2px;margin-bottom:4px">$UNITY TOKENS CAUGHT: ${uCount}</div>
     <div style="color:#aaddff;font-size:11px;letter-spacing:1px;margin-bottom:16px">WAVE: ${waveName(wave)} | COMBO PEAK: x${combo}</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button onclick="location.reload()" style="font-family:'Bebas Neue',monospace;font-size:14px;letter-spacing:2px;background:#cc0000;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;border-bottom:3px solid #880000">PLAY AGAIN</button>
+      <button onclick="location.reload()" style="font-family:'Bebas Neue',monospace;font-size:14px;letter-spacing:2px;background:#cc0000;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;border-bottom:3px solid #880000">FOLLOW AGAIN</button>
       <a href="${tweetUrl}" target="_blank" style="font-family:'Bebas Neue',monospace;font-size:14px;letter-spacing:2px;background:#1a1a1a;color:#fff;border:2px solid #333;padding:10px 20px;border-radius:4px;cursor:pointer;text-decoration:none;border-bottom:3px solid #000;display:block">&#120143; SHARE SCORE</a>
     </div>
     <a href="https://app.uniswap.org/explore/tokens/ethereum/0xfd0bb211d479710dfa01d3d98751767f51edb2d9" target="_blank" style="font-family:'Bebas Neue',monospace;font-size:12px;letter-spacing:2px;color:#ff007a;text-decoration:none">BUY $UNITY ON UNISWAP ↗</a>
@@ -554,6 +554,7 @@ function enterMobileGame(){
 }
 
 function exitMobileGame(){
+  /* Just restores canvas position - no game state changes */
   const gc = document.getElementById('gc');
   if(gc._mob){
     gc.style.position = 'absolute';
@@ -564,12 +565,16 @@ function exitMobileGame(){
     gc.style.zIndex = gc._mob.zIndex || '';
   }
   document.body.style.overflow = '';
-  document.getElementById('exit-game-btn').style.display = 'none';
-  // Only pause if game is still running (not game over)
-  if(!gameOver){
-    gameStarted = false;
-    showPauseOverlay();
-  }
+  const eb=document.getElementById('exit-game-btn');
+  if(eb)eb.style.display = 'none';
+}
+
+function exitBtnClicked(){
+  /* Called ONLY by the EXIT button */
+  if(gameOver) return;
+  exitMobileGame();
+  gameStarted = false;
+  showPauseOverlay();
 }
 
 function showPauseOverlay(){
@@ -701,12 +706,12 @@ if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData){
 <div id="browser-btn" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:500;display:none;">
   <span onclick="openInBrowser()" style="font-family:'Bebas Neue',monospace;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);padding:6px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;display:block;">&#127760; Open in Browser</span>
 </div>
-<div id="exit-game-btn" onclick="exitMobileGame()">✕ EXIT</div>
+<div id="exit-game-btn" onclick="exitBtnClicked()">✕ EXIT</div>
 </body></html
 
 
 <div id="browser-btn" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:500;display:none;">
   <span onclick="openInBrowser()" style="font-family:'Bebas Neue',monospace;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);padding:6px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;display:block;">&#127760; Open in Browser</span>
 </div>
-<div id="exit-game-btn" onclick="exitMobileGame()">✕ EXIT</div>
+<div id="exit-game-btn" onclick="exitBtnClicked()">✕ EXIT</div>
 </body></html>
