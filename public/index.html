@@ -140,6 +140,12 @@ body{display:flex;flex-direction:column;align-items:center}
 </div>
 <script>
 
+/* ── Telegram Mini App expand ── */
+if(window.Telegram && window.Telegram.WebApp){
+  window.Telegram.WebApp.expand();
+  window.Telegram.WebApp.ready();
+}
+
 
 /* ── Mobile zoom into game screen ── */
 function isMobile(){return window.innerWidth<=600;}
