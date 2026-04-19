@@ -172,7 +172,7 @@ app.post('/webhook',async(req,res)=>{
   if(text==='/start'){
     await send(
       `🐱 <b>Play Kitty's Next Move</b>\n\n`+
-      `Roaring Kitty called GME at $4. Made $48M.\n`+
+      `Roaring Kitty called GME at $4. Made $250M+.\n`+
       `His last 4 tweets all signal Unity Software ($U).\n`+
       `$UNITY is the ETH meme token built on that signal.\n\n`+
       `The $GME meme token hit $160M.\n`+
