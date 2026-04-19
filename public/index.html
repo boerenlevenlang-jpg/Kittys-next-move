@@ -712,8 +712,49 @@ function loop(){
 C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mx=Math.max(18,Math.min(W-18,(e.clientX-r.left)*(W/r.width)));my=Math.max(28,Math.min(H-22,(e.clientY-r.top)*(H/r.height)));});
 C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect();mx=Math.max(18,Math.min(W-18,(e.touches[0].clientX-r.left)*(W/r.width)));my=Math.max(28,Math.min(H-22,(e.touches[0].clientY-r.top)*(H/r.height)));},{passive:false});
 loop();
+
+/* ── Open in browser (Telegram only) ── */
+function openInBrowser(){
+  const url = window.location.href;
+  if(window.Telegram && window.Telegram.WebApp){
+    window.Telegram.WebApp.openLink(url);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+/* Show button only inside Telegram */
+if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData){
+  const bb = document.getElementById('browser-btn');
+  if(bb) bb.style.display='block';
+}
+
 </script>
 
 
 <div id="exit-fs-btn" onclick="exitFullscreenGame()">✕ EXIT</div>
+
+<div id="browser-btn" style="
+  position:fixed;
+  bottom:12px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:500;
+  display:none;
+">
+  <a onclick="openInBrowser()" style="
+    font-family:'Bebas Neue',monospace;
+    font-size:12px;
+    letter-spacing:1px;
+    color:rgba(255,255,255,0.6);
+    background:rgba(0,0,0,0.6);
+    border:1px solid rgba(255,255,255,0.2);
+    padding:6px 14px;
+    border-radius:20px;
+    cursor:pointer;
+    white-space:nowrap;
+    display:block;
+  ">🌐 Open in Browser</a>
+</div>
+
 </body></html>
