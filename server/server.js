@@ -174,10 +174,10 @@ app.post('/webhook',async(req,res)=>{
       `Roaring Kitty called GME at $4. Made $48M.\n`+
       `His last 4 tweets all signal Unity Software ($U).\n`+
       `$UNITY is the ETH meme token built on that signal.\n\n`+
-      `The $GME meme token hit $160M. $UNITY is next — the world just doesn't know it yet.\n\n`+
+      `The $GME meme token hit $160M.\n`+
+      `$UNITY is next — the world just doesn't know it yet.\n\n`+
       `🏆 Play & win ${PRIZE} $UNITY this month.\n`+
       `⏳ ${daysLeft(period)} days left.\n\n`+
-      `<code>${CA}</code>\n\n`+
       `Don't miss it twice.`,
       {reply_markup:mainKeyboard()}
     );
