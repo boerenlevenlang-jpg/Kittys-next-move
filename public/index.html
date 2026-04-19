@@ -12,37 +12,7 @@ body{display:flex;flex-direction:column;align-items:center}
 #rules-overlay{position:absolute;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;}
 #skip-btn{position:absolute;z-index:200;cursor:pointer}
 #links-desktop{position:absolute}
-#fullscreen-game{
-  display:none;
-  position:fixed;
-  top:0;left:0;
-  width:100vw;height:100vh;
-  background:#000;
-  z-index:1000;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-}
-#fullscreen-game canvas{
-  max-width:100vw;
-  max-height:100vh;
-  touch-action:none;
-}
-#exit-fs-btn{
-  position:fixed;
-  top:8px;right:8px;
-  z-index:1001;
-  background:rgba(0,0,0,0.7);
-  border:1px solid #555;
-  color:#fff;
-  font-family:'Bebas Neue',monospace;
-  font-size:12px;
-  letter-spacing:1px;
-  padding:6px 12px;
-  border-radius:4px;
-  cursor:pointer;
-  display:none;
-}
+
 </style>
 </head><body>
 <div id="wrap">
@@ -63,19 +33,7 @@ body{display:flex;flex-direction:column;align-items:center}
 </div>
 
 
-<div id="fs-btn" onclick="toggleFullscreen()" title="Fullscreen" style="
-  position:absolute;
-  z-index:100;
-  cursor:pointer;
-  background:rgba(0,0,0,0.55);
-  border:1px solid rgba(255,255,255,0.2);
-  border-radius:4px;
-  padding:3px 6px;
-  font-size:14px;
-  line-height:1;
-  color:rgba(255,255,255,0.7);
-  user-select:none;
-">⛶</div>
+
 
 <div id="rules-overlay">
   <div style="color:#f5c842;font-size:20px;letter-spacing:3px;margin-bottom:10px;text-align:center">HOW TO PLAY</div>
@@ -249,7 +207,7 @@ function positionGameCanvas(){
     dl.style.width=Math.round(619*scale)+'px';
   }
 }
-window.addEventListener('resize',()=>{positionGameCanvas();positionFsBtn();positionFsBtn();});
+window.addEventListener('resize',positionGameCanvas);
 positionGameCanvas();
 
 const BG=document.getElementById('bg'),BX=BG.getContext('2d');
@@ -519,7 +477,7 @@ function daysLeftStr(){
 function showGameOver(){
   gameOver=true;
   zoomOut();
-  exitFullscreenGame();
+  
   const _wrap=document.getElementById('wrap');
   const _scale=_wrap.offsetWidth/680;
   const gcTop=Math.round(236*_scale);
@@ -592,29 +550,9 @@ function toggleZoom(){
 /* ── Mobile fullscreen game ── */
 function isMobile(){return window.innerWidth<=700;}
 
-function enterFullscreenGame(){
-  if(!isMobile())return;
-  const gc=document.getElementById('gc');
-  // Save original styles
-  gc._origStyle={left:gc.style.left,top:gc.style.top,width:gc.style.width,height:gc.style.height,position:gc.style.position,zIndex:gc.style.zIndex||''};
-  // Natural ratio: canvas is 478x310
-  const ratio=310/478;
-  const w=window.innerWidth;
-  const h=Math.round(w*ratio);
-  const top=Math.round((window.innerHeight-h)/2);
-  gc.style.position='fixed';
-  gc.style.left='0';
-  gc.style.top=top+'px';
-  gc.style.width=w+'px';
-  gc.style.height=h+'px';
-  gc.style.zIndex='1000';
-  document.getElementById('exit-fs-btn').style.display='block';
-  document.body.style.overflow='hidden';
-  document.body.style.position='fixed';
-  document.body.style.width='100%';
-}
+function enterFullscreenGame(){}
 
-function exitFullscreenGame(){
+function _exitFullscreenGame_DELETED(){
   const gc=document.getElementById('gc');
   if(gc._origStyle){
     gc.style.position='absolute';
@@ -624,7 +562,7 @@ function exitFullscreenGame(){
     gc.style.height=gc._origStyle.height;
     gc.style.zIndex=gc._origStyle.zIndex||'';
   }
-  document.getElementById('exit-fs-btn').style.display='none';
+  
   document.body.style.overflow='';
   document.body.style.position='';
   document.body.style.width='';
@@ -746,51 +684,13 @@ if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)
 }
 
 
-/* ── Fullscreen button ── */
-function positionFsBtn(){
-  const gc = document.getElementById('gc');
-  const btn = document.getElementById('fs-btn');
-  if(!gc || !btn) return;
-  const gcLeft = parseInt(gc.style.left)||101;
-  const gcTop  = parseInt(gc.style.top)||236;
-  const gcW    = parseInt(gc.style.width)||478;
-  const gcH    = parseInt(gc.style.height)||310;
-  btn.style.left = (gcLeft + gcW - 32) + 'px';
-  btn.style.top  = (gcTop  + gcH - 26) + 'px';
-}
-
-let _fsActive = false;
-function toggleFullscreen(){
-  const wrap = document.getElementById('wrap');
-  if(!document.fullscreenElement){
-    wrap.requestFullscreen && wrap.requestFullscreen();
-    _fsActive = true;
-    document.getElementById('fs-btn').textContent = '⛶';
-  } else {
-    document.exitFullscreen && document.exitFullscreen();
-    _fsActive = false;
-    document.getElementById('fs-btn').textContent = '⛶';
-  }
-}
-
-document.addEventListener('fullscreenchange', ()=>{
-  const btn = document.getElementById('fs-btn');
-  if(document.fullscreenElement){
-    btn.textContent = '✕';
-    btn.title = 'Exit Fullscreen';
-  } else {
-    btn.textContent = '⛶';
-    btn.title = 'Fullscreen';
-  }
-});
+);
 
 /* Reposition on resize */
 const _origPositionGameCanvas = positionGameCanvas;
 
 </script>
 
-
-<div id="exit-fs-btn" onclick="exitFullscreenGame()">✕ EXIT</div>
 
 <div id="browser-btn" style="
   position:fixed;
