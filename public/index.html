@@ -10,6 +10,7 @@ body{display:flex;flex-direction:column;align-items:center}
 #bg{display:block;width:100%;height:auto}
 #gc{position:absolute;cursor:none;touch-action:none}
 .links-bar{width:100%;max-width:680px}
+#wrap{transform-origin:top center;transition:transform 0.6s ease-in-out;}
 </style>
 </head><body>
 <div id="wrap">
@@ -138,6 +139,46 @@ body{display:flex;flex-direction:column;align-items:center}
 
 </div>
 <script>
+
+
+/* ── Mobile zoom into game screen ── */
+function isMobile(){return window.innerWidth<=600;}
+
+function zoomIntoGame(){
+  if(!isMobile())return;
+  const wrap=document.getElementById('wrap');
+  const wrapW=wrap.offsetWidth;
+  const viewW=window.innerWidth;
+  const viewH=window.innerHeight;
+
+  // Game screen in original 680px coords: left=101,top=236,w=478,h=310
+  // In scaled wrap: scale=wrapW/680
+  const scale=wrapW/680;
+  const screenLeft=101*scale;
+  const screenTop=236*scale;
+  const screenW=478*scale;
+  const screenH=310*scale;
+
+  // We want screenW*zoom = viewW → zoom = viewW/screenW
+  const zoom=Math.min(viewW/screenW, viewH/screenH)*0.95;
+
+  // Offset so game screen centres in viewport
+  const offsetX=(viewW/2)-(screenLeft+screenW/2)*zoom;
+  const offsetY=Math.max(0,(viewH/2)-(screenTop+screenH/2)*zoom);
+
+  wrap.style.transformOrigin='0 0';
+  wrap.style.transform=`translate(${offsetX}px, ${offsetY}px) scale(${zoom})`;
+  document.body.style.overflow='hidden';
+  document.body.style.height=viewH+'px';
+}
+
+function zoomOut(){
+  const wrap=document.getElementById('wrap');
+  wrap.style.transform='none';
+  wrap.style.transformOrigin='top center';
+  document.body.style.overflow='';
+  document.body.style.height='';
+}
 
 /* ── Responsive game canvas positioning ── */
 const ORIG_W=680, ORIG_H=907;
@@ -392,6 +433,7 @@ function daysLeftStr(){
 /* ── Game Over overlay ── */
 function showGameOver(){
   gameOver=true;
+  zoomOut();
   const ov=document.createElement('div');
   ov.id='go-overlay';
   const _gc=document.getElementById('gc');const _gcr=_gc.getBoundingClientRect();const _wr=document.getElementById('wrap').getBoundingClientRect();
@@ -432,6 +474,13 @@ function skipToRules(){
     document.getElementById('skip-btn').style.display='none';
     positionGameCanvas();document.getElementById('rules-overlay').style.display='flex';
   }
+}
+
+
+let _zoomed=false;
+function toggleZoom(){
+  if(_zoomed){zoomOut();_zoomed=false;document.getElementById('zoom-btn').textContent='🔍';}
+  else{zoomIntoGame();_zoomed=true;document.getElementById('zoom-btn').textContent='🗗';}
 }
 
 function startGame(){
@@ -508,4 +557,22 @@ C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mx=Math.max
 C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect();mx=Math.max(18,Math.min(W-18,(e.touches[0].clientX-r.left)*(W/r.width)));my=Math.max(28,Math.min(H-22,(e.touches[0].clientY-r.top)*(H/r.height)));},{passive:false});
 loop();
 </script>
+
+<div id="zoom-btn" onclick="toggleZoom()" style="
+  display:none;
+  position:fixed;
+  bottom:16px;
+  right:16px;
+  z-index:999;
+  background:rgba(0,0,0,0.7);
+  border:1px solid #555;
+  border-radius:50%;
+  width:44px;
+  height:44px;
+  font-size:20px;
+  line-height:44px;
+  text-align:center;
+  cursor:pointer;
+">🔍</div>
+
 </body></html>
