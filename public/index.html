@@ -344,26 +344,20 @@ function drawCutscene(){
       const _h=Math.round(_vw*_ratio),_top=Math.max(0,Math.round((_vh-_h)/2));
       _ro2.style.position='fixed';_ro2.style.left='0';_ro2.style.top=_top+'px';
       _ro2.style.width=_vw+'px';_ro2.style.height=_h+'px';_ro2.style.zIndex='1000';
-      /* Move gc behind rules overlay so no double shows */
-      const _gc=document.getElementById('gc');
-      _gc.style.position='fixed';_gc.style.left='0';_gc.style.top=_top+'px';
-      _gc.style.width=_vw+'px';_gc.style.height=_h+'px';_gc.style.zIndex='999';
       document.body.style.overflow='hidden';
     }
       return;
     }
   }
-  if(curScreen>=SCREENS.length){cutsceneDone=true;const _ro2=document.getElementById('rules-overlay');
+  if(curScreen>=SCREENS.length){cutsceneDone=true;
+    document.getElementById('gc').style.visibility='hidden';
+    const _ro2=document.getElementById('rules-overlay');
     _ro2.style.display='flex';
     if(isMobile()){
       const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
       const _h=Math.round(_vw*_ratio),_top=Math.max(0,Math.round((_vh-_h)/2));
       _ro2.style.position='fixed';_ro2.style.left='0';_ro2.style.top=_top+'px';
       _ro2.style.width=_vw+'px';_ro2.style.height=_h+'px';_ro2.style.zIndex='1000';
-      /* Move gc behind rules overlay so no double shows */
-      const _gc=document.getElementById('gc');
-      _gc.style.position='fixed';_gc.style.left='0';_gc.style.top=_top+'px';
-      _gc.style.width=_vw+'px';_gc.style.height=_h+'px';_gc.style.zIndex='999';
       document.body.style.overflow='hidden';
     }return;}
   const sc2=SCREENS[curScreen];
@@ -611,8 +605,9 @@ const tks=['$UNITY +741% ▲','GME: AVOID','ETH MAINNET','DIAMOND HANDS','CONNEC
 function skipToRules(){
   if(!cutsceneDone){
     cutsceneDone=true;
-    X.fillStyle='#060606';X.fillRect(0,0,W,H);
     document.getElementById('skip-btn').style.display='none';
+    /* Hide game canvas so it doesn't show behind rules overlay */
+    document.getElementById('gc').style.visibility='hidden';
     const _ro2=document.getElementById('rules-overlay');
     _ro2.style.display='flex';
     if(isMobile()){
@@ -620,10 +615,6 @@ function skipToRules(){
       const _h=Math.round(_vw*_ratio),_top=Math.max(0,Math.round((_vh-_h)/2));
       _ro2.style.position='fixed';_ro2.style.left='0';_ro2.style.top=_top+'px';
       _ro2.style.width=_vw+'px';_ro2.style.height=_h+'px';_ro2.style.zIndex='1000';
-      /* Move gc behind rules overlay so no double shows */
-      const _gc=document.getElementById('gc');
-      _gc.style.position='fixed';_gc.style.left='0';_gc.style.top=_top+'px';
-      _gc.style.width=_vw+'px';_gc.style.height=_h+'px';_gc.style.zIndex='999';
       document.body.style.overflow='hidden';
     }
   }
@@ -631,6 +622,7 @@ function skipToRules(){
 
 function startGame(){
   gameOver=false;
+  document.getElementById('gc').style.visibility='visible';
   enterMobileGame();
   document.getElementById('rules-overlay').style.display='none';
   gameStarted=true;
