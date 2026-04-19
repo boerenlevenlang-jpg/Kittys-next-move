@@ -45,23 +45,7 @@ body{display:flex;flex-direction:column;align-items:center}
   </div>
   <div style="font-family:'Inter',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:#999;text-align:center;width:100%">CA: 0xFd0bb211d479710dFa01d3d98751767F51edb2d9 &bull; ETH MAINNET</div>
 </div>
-<div id="rules-overlay" style="
-  display:none;
-  position:absolute;
-  top:236px;
-  left:101px;
-  width:478px;
-  height:310px;
-  background:#060606;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:0px;
-  font-family:'Bebas Neue',monospace;
-  z-index:50;
-  padding:18px 20px;
-  box-sizing:border-box;
-">
+<div id="rules-overlay" style="display:none;position:absolute;background:#060606;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;">
   <div style="color:#f5c842;font-size:20px;letter-spacing:3px;margin-bottom:10px;text-align:center">HOW TO PLAY</div>
 
   <div style="width:100%;display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
@@ -134,6 +118,8 @@ body{display:flex;flex-direction:column;align-items:center}
 </div>
 <script>
 
+positionGameCanvas();
+updateLinksVisibility();
 if(window.Telegram&&window.Telegram.WebApp){
   window.Telegram.WebApp.expand();
   window.Telegram.WebApp.ready();
@@ -338,6 +324,7 @@ function drawCutscene(){
       cutsceneDone=true;
       X.fillStyle='#060606';X.fillRect(0,0,W,H);
       const _ro2=document.getElementById('rules-overlay');
+    document.getElementById('gc').style.visibility='hidden';
     _ro2.style.display='flex';
     if(isMobile()){
       const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
@@ -352,6 +339,7 @@ function drawCutscene(){
   if(curScreen>=SCREENS.length){cutsceneDone=true;
     document.getElementById('gc').style.visibility='hidden';
     const _ro2=document.getElementById('rules-overlay');
+    document.getElementById('gc').style.visibility='hidden';
     _ro2.style.display='flex';
     if(isMobile()){
       const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
@@ -449,17 +437,14 @@ function checkHighScore(){
 function positionGameCanvas(){
   const wrap=document.getElementById('wrap');
   const scale=wrap.offsetWidth/680;
+  const L=Math.round(101*scale), T=Math.round(236*scale);
+  const W2=Math.round(478*scale), H2=Math.round(310*scale);
   const gc=document.getElementById('gc');
-  gc.style.left=Math.round(101*scale)+'px';
-  gc.style.top=Math.round(236*scale)+'px';
-  gc.style.width=Math.round(478*scale)+'px';
-  gc.style.height=Math.round(310*scale)+'px';
-  gc.style.imageRendering='auto';
+  gc.style.left=L+'px'; gc.style.top=T+'px';
+  gc.style.width=W2+'px'; gc.style.height=H2+'px';
   const ro=document.getElementById('rules-overlay');
-  ro.style.left=Math.round(101*scale)+'px';
-  ro.style.top=Math.round(236*scale)+'px';
-  ro.style.width=Math.round(478*scale)+'px';
-  ro.style.height=Math.round(310*scale)+'px';
+  ro.style.left=L+'px'; ro.style.top=T+'px';
+  ro.style.width=W2+'px'; ro.style.height=H2+'px';
   const sb=document.getElementById('skip-btn');
   if(sb){sb.style.left=(Math.round(101*scale)+Math.round(478*scale)-70)+'px';sb.style.top=(Math.round(236*scale)+4)+'px';}
   const dl=document.getElementById('links-desktop');
@@ -609,6 +594,7 @@ function skipToRules(){
     /* Hide game canvas so it doesn't show behind rules overlay */
     document.getElementById('gc').style.visibility='hidden';
     const _ro2=document.getElementById('rules-overlay');
+    document.getElementById('gc').style.visibility='hidden';
     _ro2.style.display='flex';
     if(isMobile()){
       const _ratio=310/478,_vw=window.innerWidth,_vh=window.innerHeight;
@@ -700,7 +686,9 @@ loop();
 
 function openInBrowser(){
   const url=window.location.href;
-  if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.openLink(url);}
+  positionGameCanvas();
+updateLinksVisibility();
+if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.openLink(url);}
   else{window.open(url,'_blank');}
 }
 if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData){
