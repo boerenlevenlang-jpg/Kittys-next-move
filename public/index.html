@@ -9,7 +9,7 @@ body{display:flex;flex-direction:column;align-items:center}
 #wrap{position:relative;width:100%;max-width:680px}
 #bg{display:block;width:100%;height:auto}
 #gc{position:absolute;cursor:none;touch-action:none}
-#rules-overlay{position:absolute;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;}
+#rules-overlay{display:none;}
 #skip-btn{position:absolute;z-index:200;cursor:pointer}
 #links-desktop{position:absolute}
 
@@ -45,52 +45,39 @@ body{display:flex;flex-direction:column;align-items:center}
   </div>
   <div style="font-family:'Inter',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:#999;text-align:center;width:100%">CA: 0xFd0bb211d479710dFa01d3d98751767F51edb2d9 &bull; ETH MAINNET</div>
 </div>
-<div id="rules-overlay" style="display:none;position:absolute;background:#060606;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;">
-  <div style="color:#f5c842;font-size:20px;letter-spacing:3px;margin-bottom:10px;text-align:center">HOW TO PLAY</div>
+<div id="rules-overlay" style="display:none;position:absolute;background:#060606;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:12px 14px;box-sizing:border-box;overflow:hidden;">
+  <div style="color:#f5c842;font-size:18px;letter-spacing:2px;margin-bottom:8px;text-align:center">HOW TO PLAY</div>
 
-  <div style="width:100%;display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
-    <div style="display:flex;align-items:center;gap:8px;background:#0d1a0d;border-left:3px solid #00cc44;padding:5px 8px;border-radius:2px">
-      <span style="font-size:14px">&#9632;</span>
-      <span style="color:#00cc44;font-size:13px;letter-spacing:1px">CATCH UNITY CUBES</span>
-      <span style="color:#555;font-size:10px;margin-left:auto;letter-spacing:1px">EARN POINTS + BUILD COMBO</span>
+  <div style="width:100%;display:flex;flex-direction:column;gap:4px;margin-bottom:10px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:6px;background:#0d1a0d;border-left:3px solid #00cc44;padding:5px 7px;border-radius:2px;overflow:hidden;">
+      <span style="font-size:12px;flex-shrink:0;color:#00cc44">&#9632;</span>
+      <span style="color:#00cc44;font-size:12px;letter-spacing:1px;flex-shrink:0">CATCH UNITY CUBES</span>
+      <span style="color:#555;font-size:9px;margin-left:auto;letter-spacing:0px;white-space:nowrap;flex-shrink:0">EARN PTS + COMBO</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;background:#1a0d0d;border-left:3px solid #ff4444;padding:5px 8px;border-radius:2px">
-      <span style="font-size:14px">&#9650;</span>
-      <span style="color:#ff4444;font-size:13px;letter-spacing:1px">AVOID GME TOMBSTONES</span>
-      <span style="color:#555;font-size:10px;margin-left:auto;letter-spacing:1px">COSTS A LIFE</span>
+    <div style="display:flex;align-items:center;gap:6px;background:#1a0d0d;border-left:3px solid #ff4444;padding:5px 7px;border-radius:2px;overflow:hidden;">
+      <span style="font-size:12px;flex-shrink:0;color:#ff4444">&#9650;</span>
+      <span style="color:#ff4444;font-size:12px;letter-spacing:1px;flex-shrink:0">AVOID GME TOMBSTONES</span>
+      <span style="color:#555;font-size:9px;margin-left:auto;letter-spacing:0px;white-space:nowrap;flex-shrink:0">COSTS A LIFE</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;background:#1a0d0d;border-left:3px solid #ff6644;padding:5px 8px;border-radius:2px">
-      <span style="font-size:14px">&#9679;</span>
-      <span style="color:#ff6644;font-size:13px;letter-spacing:1px">DODGE SEC &amp; SHORT BEARS</span>
-      <span style="color:#555;font-size:10px;margin-left:auto;letter-spacing:1px">COSTS A LIFE</span>
+    <div style="display:flex;align-items:center;gap:6px;background:#1a0d0d;border-left:3px solid #ff6644;padding:5px 7px;border-radius:2px;overflow:hidden;">
+      <span style="font-size:12px;flex-shrink:0;color:#ff6644">&#9679;</span>
+      <span style="color:#ff6644;font-size:12px;letter-spacing:1px;flex-shrink:0">DODGE SEC &amp; SHORT BEARS</span>
+      <span style="color:#555;font-size:9px;margin-left:auto;letter-spacing:0px;white-space:nowrap;flex-shrink:0">COSTS A LIFE</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;background:#1a1500;border-left:3px solid #f5c842;padding:5px 8px;border-radius:2px">
-      <span style="font-size:14px">&#9733;</span>
-      <span style="color:#f5c842;font-size:13px;letter-spacing:1px">HIT PERFECT SIGNAL STARS</span>
-      <span style="color:#555;font-size:10px;margin-left:auto;letter-spacing:1px">2X JACKPOT</span>
+    <div style="display:flex;align-items:center;gap:6px;background:#1a1500;border-left:3px solid #f5c842;padding:5px 7px;border-radius:2px;overflow:hidden;">
+      <span style="font-size:12px;flex-shrink:0;color:#f5c842">&#9733;</span>
+      <span style="color:#f5c842;font-size:12px;letter-spacing:1px;flex-shrink:0">HIT PERFECT SIGNAL STARS</span>
+      <span style="color:#555;font-size:9px;margin-left:auto;letter-spacing:0px;white-space:nowrap;flex-shrink:0">2X JACKPOT</span>
     </div>
   </div>
 
-  <div style="width:100%;background:#0a0a0a;border:1px solid #2a1a00;border-radius:4px;padding:8px 10px;margin-bottom:12px;text-align:center">
-    <div style="color:#f5c842;font-size:14px;letter-spacing:2px;margin-bottom:2px">MONTHLY PRIZE</div>
-    <div style="color:#ffffff;font-size:12px;letter-spacing:1px">1,000,000,000,000 UNITY tokens</div>
-    <div style="color:#555;font-size:9px;letter-spacing:1px;margin-top:2px">HIGHEST SCORE WINS &bull; ETH MAINNET &bull; REGISTER: /wallet</div>
+  <div style="width:100%;background:#111;border:1px solid #333;border-radius:3px;padding:8px 10px;text-align:center;margin-bottom:10px;box-sizing:border-box;">
+    <div style="color:#f5c842;font-size:13px;letter-spacing:2px;margin-bottom:3px">MONTHLY PRIZE</div>
+    <div style="color:#fff;font-size:14px;letter-spacing:1px;margin-bottom:2px">1,000,000,000,000 UNITY</div>
+    <div style="color:#888;font-size:9px;letter-spacing:1px">HIGHEST SCORE WINS &bull; ETH MAINNET &bull; /wallet</div>
   </div>
 
-  <button onclick="startGame()" style="
-    font-family:'Bebas Neue',monospace;
-    font-size:18px;
-    letter-spacing:3px;
-    color:#fff;
-    background:#cc0000;
-    border:none;
-    border-bottom:3px solid #880000;
-    padding:10px 0;
-    border-radius:4px;
-    cursor:pointer;
-    width:100%;
-    text-align:center;
-  ">FOLLOW THE MOVE — PLAY NOW</button>
+  <button onclick="startGame()" style="width:100%;font-family:'Bebas Neue',monospace;font-size:16px;letter-spacing:3px;background:#cc0000;color:#fff;border:none;border-bottom:3px solid #880000;padding:10px 0;border-radius:4px;cursor:pointer;box-sizing:border-box;">FOLLOW THE MOVE — PLAY NOW</button>
 </div>
 
 <div id="skip-btn">
@@ -642,6 +629,8 @@ function loop(){
   floats=floats.filter(f=>f.life>0);
   floats.forEach(f=>{f.y+=f.vy;f.life-=.016;f.sc=Math.max(1,f.sc-.018);});
   hit();
+  /* Reset transform each frame so nothing accumulates */
+  X.setTransform(DPR,0,0,DPR,0,0);
   let sx=0,sy=0;if(shake>0){sx=rnd(-shake,shake);sy=rnd(-shake,shake);}
   X.save();if(shake>0)X.translate(sx,sy);
   /* screen bg matching monitor silver */
@@ -650,6 +639,8 @@ function loop(){
   X.fillStyle=grad;X.fillRect(0,0,W,H);
   /* scanlines */
   X.save();X.globalAlpha=0.05;for(let y=0;y<H;y+=3){X.fillStyle='#000';X.fillRect(0,y,W,1);}X.restore();
+  /* Reset to DPR-only transform for HUD (no shake) */
+  X.setTransform(DPR,0,0,DPR,0,0);
   /* UNITY watermark */
   X.save();X.globalAlpha=0.05;X.fillStyle='#333';X.font='bold 70px monospace';X.textAlign='center';X.textBaseline='middle';X.fillText('UNITY',W/2,H/2);X.restore();
   /* chart line */
