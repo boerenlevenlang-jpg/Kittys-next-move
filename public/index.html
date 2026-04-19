@@ -415,9 +415,15 @@ function drawCutscene(){
     _ro.style.display='flex';
     // On mobile make rules overlay also fullscreen
     if(isMobile()){
+      const _ratio=310/478;
+      const _w=window.innerWidth;
+      const _h=Math.round(_w*_ratio);
+      const _top=Math.round((window.innerHeight-_h)/2);
       _ro.style.position='fixed';
-      _ro.style.top='0';_ro.style.left='0';
-      _ro.style.width='100vw';_ro.style.height='100vh';
+      _ro.style.left='0';
+      _ro.style.top=_top+'px';
+      _ro.style.width=_w+'px';
+      _ro.style.height=_h+'px';
       _ro.style.zIndex='1000';
     }
       return;
@@ -427,9 +433,15 @@ function drawCutscene(){
     _ro.style.display='flex';
     // On mobile make rules overlay also fullscreen
     if(isMobile()){
+      const _ratio=310/478;
+      const _w=window.innerWidth;
+      const _h=Math.round(_w*_ratio);
+      const _top=Math.round((window.innerHeight-_h)/2);
       _ro.style.position='fixed';
-      _ro.style.top='0';_ro.style.left='0';
-      _ro.style.width='100vw';_ro.style.height='100vh';
+      _ro.style.left='0';
+      _ro.style.top=_top+'px';
+      _ro.style.width=_w+'px';
+      _ro.style.height=_h+'px';
       _ro.style.zIndex='1000';
     }return;}
   const sc2=SCREENS[curScreen];
@@ -533,9 +545,15 @@ function skipToRules(){
     _ro.style.display='flex';
     // On mobile make rules overlay also fullscreen
     if(isMobile()){
+      const _ratio=310/478;
+      const _w=window.innerWidth;
+      const _h=Math.round(_w*_ratio);
+      const _top=Math.round((window.innerHeight-_h)/2);
       _ro.style.position='fixed';
-      _ro.style.top='0';_ro.style.left='0';
-      _ro.style.width='100vw';_ro.style.height='100vh';
+      _ro.style.left='0';
+      _ro.style.top=_top+'px';
+      _ro.style.width=_w+'px';
+      _ro.style.height=_h+'px';
       _ro.style.zIndex='1000';
     }
   }
@@ -555,19 +573,20 @@ function isMobile(){return window.innerWidth<=700;}
 function enterFullscreenGame(){
   if(!isMobile())return;
   const gc=document.getElementById('gc');
-  const ro=document.getElementById('rules-overlay');
   // Save original styles
-  gc._origStyle={left:gc.style.left,top:gc.style.top,width:gc.style.width,height:gc.style.height,position:gc.style.position,zIndex:gc.style.zIndex};
-  // Make gc fixed fullscreen
+  gc._origStyle={left:gc.style.left,top:gc.style.top,width:gc.style.width,height:gc.style.height,position:gc.style.position,zIndex:gc.style.zIndex||''};
+  // Natural ratio: canvas is 478x310
+  const ratio=310/478;
+  const w=window.innerWidth;
+  const h=Math.round(w*ratio);
+  const top=Math.round((window.innerHeight-h)/2);
   gc.style.position='fixed';
   gc.style.left='0';
-  gc.style.top='0';
-  gc.style.width='100vw';
-  gc.style.height='100vh';
+  gc.style.top=top+'px';
+  gc.style.width=w+'px';
+  gc.style.height=h+'px';
   gc.style.zIndex='1000';
-  // Show exit button
   document.getElementById('exit-fs-btn').style.display='block';
-  // Prevent body scroll
   document.body.style.overflow='hidden';
   document.body.style.position='fixed';
   document.body.style.width='100%';
