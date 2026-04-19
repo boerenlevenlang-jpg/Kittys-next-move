@@ -565,9 +565,11 @@ function exitMobileGame(){
   }
   document.body.style.overflow = '';
   document.getElementById('exit-game-btn').style.display = 'none';
-  // Pause game
-  gameStarted = false;
-  showPauseOverlay();
+  // Only pause if game is still running (not game over)
+  if(!gameOver){
+    gameStarted = false;
+    showPauseOverlay();
+  }
 }
 
 function showPauseOverlay(){
