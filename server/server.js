@@ -169,9 +169,9 @@ app.post('/webhook',async(req,res)=>{
   const send=(t,e={})=>tgSend(chatId,t,e);
   const period=currentPeriod();
 
-  if(text==='/start'||text==='/play'){
+  if(text==='/start'){
     await send(
-      `🐱 <b>Kitty's Next Move</b>\n\n`+
+      `🐱 <b>Play Kitty's Next Move</b>\n\n`+
       `Roaring Kitty called GME at $4. Made $48M.\n`+
       `His last 4 tweets all signal Unity Software ($U).\n`+
       `$UNITY is the ETH meme token built on that signal.\n\n`+
@@ -246,12 +246,26 @@ app.post('/webhook',async(req,res)=>{
     r+=`<code>${CA}</code>`;
     await send(r,{reply_markup:mainKeyboard()});
   }
+  else if(text==='/price'){
+    await send(
+      `💰 <b>$UNITY Price & Links</b>\n\n`+
+      `📈 Chart: DexTools\n`+
+      `💱 Buy: Uniswap\n`+
+      `🌐 Website: unityoneth.com\n\n`+
+      `📌 CA: <code>${CA}</code>`,
+      {reply_markup:{inline_keyboard:[
+        [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 DexTools',url:DEX_URL}],
+        [{text:'🌐 unityoneth.com',url:WEBSITE_URL}]
+      ]}}
+    );
+  }
   else if(text==='/help'){
     await send(
       `<b>Commands</b>\n\n`+
-      `/start — intro\n`+
+      `/start — play the game\n`+
       `/clues — Roaring Kitty's 4 tweets\n`+
       `/buy — how to buy $UNITY\n`+
+      `/price — price & links\n`+
       `/leaderboard — top scores\n`+
       `/status — competition status\n`+
       `/wallet 0xAddress — register to win`,
