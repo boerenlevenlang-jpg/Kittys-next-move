@@ -62,6 +62,21 @@ body{display:flex;flex-direction:column;align-items:center}
   <div style="font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;color:#999;text-align:center;width:100%">CONTRACT: 0xFd0bb211d479710dFa01d3d98751767F51edb2d9 &bull; ETH MAINNET</div>
 </div>
 
+
+<div id="fs-btn" onclick="toggleFullscreen()" title="Fullscreen" style="
+  position:absolute;
+  z-index:100;
+  cursor:pointer;
+  background:rgba(0,0,0,0.55);
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:4px;
+  padding:3px 6px;
+  font-size:14px;
+  line-height:1;
+  color:rgba(255,255,255,0.7);
+  user-select:none;
+">⛶</div>
+
 <div id="rules-overlay">
   <div style="color:#f5c842;font-size:20px;letter-spacing:3px;margin-bottom:10px;text-align:center">HOW TO PLAY</div>
 
@@ -234,7 +249,7 @@ function positionGameCanvas(){
     dl.style.width=Math.round(619*scale)+'px';
   }
 }
-window.addEventListener('resize',positionGameCanvas);
+window.addEventListener('resize',()=>{positionGameCanvas();positionFsBtn();positionFsBtn();});
 positionGameCanvas();
 
 const BG=document.getElementById('bg'),BX=BG.getContext('2d');
@@ -728,6 +743,48 @@ if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)
   const bb = document.getElementById('browser-btn');
   if(bb) bb.style.display='block';
 }
+
+
+/* ── Fullscreen button ── */
+function positionFsBtn(){
+  const gc = document.getElementById('gc');
+  const btn = document.getElementById('fs-btn');
+  if(!gc || !btn) return;
+  const gcLeft = parseInt(gc.style.left)||101;
+  const gcTop  = parseInt(gc.style.top)||236;
+  const gcW    = parseInt(gc.style.width)||478;
+  const gcH    = parseInt(gc.style.height)||310;
+  btn.style.left = (gcLeft + gcW - 32) + 'px';
+  btn.style.top  = (gcTop  + gcH - 26) + 'px';
+}
+
+let _fsActive = false;
+function toggleFullscreen(){
+  const wrap = document.getElementById('wrap');
+  if(!document.fullscreenElement){
+    wrap.requestFullscreen && wrap.requestFullscreen();
+    _fsActive = true;
+    document.getElementById('fs-btn').textContent = '⛶';
+  } else {
+    document.exitFullscreen && document.exitFullscreen();
+    _fsActive = false;
+    document.getElementById('fs-btn').textContent = '⛶';
+  }
+}
+
+document.addEventListener('fullscreenchange', ()=>{
+  const btn = document.getElementById('fs-btn');
+  if(document.fullscreenElement){
+    btn.textContent = '✕';
+    btn.title = 'Exit Fullscreen';
+  } else {
+    btn.textContent = '⛶';
+    btn.title = 'Fullscreen';
+  }
+});
+
+/* Reposition on resize */
+const _origPositionGameCanvas = positionGameCanvas;
 
 </script>
 
