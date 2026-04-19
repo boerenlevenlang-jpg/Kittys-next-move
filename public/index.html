@@ -284,26 +284,29 @@ let cutsceneFrame=0, cutsceneDone=false;
 const SCREENS=[
   {dur:420, lines:[
     {t:'WHO IS ROARING KITTY?', size:18, col:'#f5c842', bold:true},
-    {t:' ', size:8, col:'#000'},
+    {t:'', size:8, col:'#000'},
     {t:'Keith Gill turned $53,000 into $48 million', size:13, col:'#ffffff'},
     {t:'by calling the GameStop squeeze before anyone.', size:13, col:'#ffffff'},
-    {t:' ', size:8, col:'#000'},
+    {t:'', size:8, col:'#000'},
     {t:'He went silent. Then posted 4 cryptic tweets.', size:12, col:'#aaaaaa'},
     {t:'The internet is connecting the dots.', size:12, col:'#aaaaaa'},
   ]},
-
-  {dur:360, lines:[
-    {t:"ROARING KITTYS NEXT PICK?", size:18, col:'#cc0000', bold:true},
-    {t:' ', size:10, col:'#000'},
-    {t:'$UNITY', size:36, col:'#f5c842', bold:true},
-    {t:' ', size:10, col:'#000'},
-    {t:'Four tweets. One signal.', size:12, col:'#aaaaaa'},
-    {t:"He did it with GME. He's signalling $UNITY. Don't miss it twice.", size:13, col:"#ffffff"},
-  ]},
+  ,,
+  {dur:480, lines:[
+    {t:'THE 4 CLUES HE LEFT', size:18, col:'#f5c842', bold:true},
+    {t:'', size:6, col:'#000'},
+    {t:'Gift box  =  Unity Engine cube logo', size:12, col:'#ffffff'},
+    {t:'TIME magazine  =  TIME U COVER  ($U = Unity ticker)', size:12, col:'#ffffff'},
+    {t:'Dave Chappelle skit  =  UNITY ring on the knuckles', size:12, col:'#ffffff'},
+    {t:'Futurama dog clip  =  I Will Wait for U', size:12, col:'#ffffff'},
+    {t:'', size:6, col:'#000'},
+    {t:'$U is the stock ticker for Unity Software.', size:11, col:'#888888'},
+  ]}
 ];
 
 let curScreen=0, screenFrame=0;
 let gameStarted=false;
+let gameOver=false;
 
 function drawCutscene(){
   if(cutsceneDone) return;
@@ -370,6 +373,7 @@ function daysLeftStr(){
 
 /* ── Game Over overlay ── */
 function showGameOver(){
+  gameOver=true;
   const ov=document.createElement('div');
   ov.id='go-overlay';
   ov.style.cssText='position:absolute;top:'+236+'px;left:'+101+'px;width:'+478+'px;height:'+310+'px;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Bebas Neue",monospace;z-index:99';
@@ -425,7 +429,8 @@ function startGame(){
 }
 function loop(){
   if(!cutsceneDone){drawCutscene();requestAnimationFrame(loop);return;}
-  if(!gameStarted){return;} /* wait for play button */
+  if(!gameStarted){return;}
+  if(gameOver){return;}
   frame++;blinkT++;
   if(cTimer>0){cTimer--;if(cTimer===0)combo=1;}
   if(frame%600===0){wave++;spawnRate=Math.max(35,spawnRate-8);}
@@ -444,8 +449,6 @@ function loop(){
   floats=floats.filter(f=>f.life>0);
   floats.forEach(f=>{f.y+=f.vy;f.life-=.016;f.sc=Math.max(1,f.sc-.018);});
   hit();
-  let sx=0,sy=0;if(shake>0){sx=rnd(-shake,shake);sy=rnd(-shake,shake);}
-  X.save();if(shake>0)X.translate(sx,sy);
   /* screen bg matching monitor silver */
   const grad=X.createRadialGradient(W*.38,H*.3,0,W*.5,H*.5,W*.65);
   grad.addColorStop(0,'#e8e8e8');grad.addColorStop(0.5,'#d2d2d2');grad.addColorStop(1,'#bababa');
@@ -463,6 +466,13 @@ function loop(){
   items.forEach(drawItem);
   parts.forEach(p=>{X.save();X.globalAlpha=p.life;X.fillStyle=p.col;X.beginPath();X.arc(p.x,p.y,p.sz,0,Math.PI*2);X.fill();X.restore();});
   floats.forEach(f=>{X.save();X.globalAlpha=f.life;X.translate(f.x,f.y);X.scale(f.sc,f.sc);X.font='bold 10px monospace';X.textAlign='center';X.textBaseline='middle';X.strokeStyle='#fff';X.lineWidth=2;X.strokeText(f.txt,0,0);X.fillStyle=f.col;X.fillText(f.txt,0,0);X.restore();});
+  drawKitty(mx,my);
+  /* crosshair */
+  const p2=Math.sin(frame*.1)*1.5;
+  X.strokeStyle='rgba(160,0,0,0.7)';X.lineWidth=1.2;
+  [[mx-14-p2,my,mx-4,my],[mx+4,my,mx+14+p2,my],[mx,my-14-p2,mx,my-4],[mx,my+4,mx,my+14+p2]].forEach(([x1,y1,x2,y2])=>{X.beginPath();X.moveTo(x1,y1);X.lineTo(x2,y2);X.stroke();});
+  X.restore();
+
   /* HUD */
   X.fillStyle='rgba(0,0,0,0.5)';X.fillRect(0,0,W,20);
   const hd=[['$UNITY',score.toLocaleString(),'#f5c842',4],['U',uCount,'#00cc44',90],['LIVES',lives<=0?'OUT':'♥'.repeat(Math.max(1,lives)),'#e03030',130],['WAVE',waveName(wave),'#aaddff',150],['⏳',daysLeftStr(),'#ff9944',330],['x',combo,'#f5c842',245]];
@@ -472,14 +482,7 @@ function loop(){
   X.strokeStyle='#444';X.lineWidth=0.5;X.beginPath();X.moveTo(0,H-16);X.lineTo(W,H-16);X.stroke();
   let tx=tickerX;
   tks.forEach(t=>{X.fillStyle=t.includes('GME')?'#ff5555':t.includes('ETH')?'#8888ff':'#00cc44';X.font='bold 8px monospace';X.fillText(t,tx,H-5);tx+=X.measureText(t).width+20;});
-  X.restore();
   tickerX-=0.6;if(tickerX<-330)tickerX=0;
-  drawKitty(mx,my);
-  /* crosshair */
-  const p2=Math.sin(frame*.1)*1.5;
-  X.strokeStyle='rgba(160,0,0,0.7)';X.lineWidth=1.2;
-  [[mx-14-p2,my,mx-4,my],[mx+4,my,mx+14+p2,my],[mx,my-14-p2,mx,my-4],[mx,my+4,mx,my+14+p2]].forEach(([x1,y1,x2,y2])=>{X.beginPath();X.moveTo(x1,y1);X.lineTo(x2,y2);X.stroke();});
-  X.restore();
   requestAnimationFrame(loop);
 }
 C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mx=Math.max(18,Math.min(W-18,(e.clientX-r.left)*(W/r.width)));my=Math.max(28,Math.min(H-22,(e.clientY-r.top)*(H/r.height)));});
