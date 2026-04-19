@@ -652,12 +652,17 @@ function loop(){
   items.forEach(drawItem);
   parts.forEach(p=>{X.save();X.globalAlpha=p.life;X.fillStyle=p.col;X.beginPath();X.arc(p.x,p.y,p.sz,0,Math.PI*2);X.fill();X.restore();});
   floats.forEach(f=>{X.save();X.globalAlpha=f.life;X.translate(f.x,f.y);X.scale(f.sc,f.sc);X.font='bold 10px monospace';X.textAlign='center';X.textBaseline='middle';X.strokeStyle='#fff';X.lineWidth=2;X.strokeText(f.txt,0,0);X.fillStyle=f.col;X.fillText(f.txt,0,0);X.restore();});
-  /* HUD */
+  /* HUD - draw with clean transform, no shake ever */
+  X.save();
+  X.setTransform(DPR,0,0,DPR,0,0);
   X.fillStyle='rgba(0,0,0,0.55)';X.fillRect(0,0,W,Math.round(20));
   const hd=[['$UNITY',score.toLocaleString(),'#f5c842',4],['U',uCount,'#00cc44',90],['LIVES',lives<=0?'OUT':'♥'.repeat(Math.max(1,lives)),'#e03030',130],['WAVE',waveName(wave),'#aaddff',150],['⏳',daysLeftStr(),'#ff9944',330],['x',combo,'#f5c842',245]];
   hd.forEach(([l,v,c,x2])=>{X.fillStyle='#555';X.font='6px monospace';X.textAlign='left';X.fillText(l,x2,8);X.fillStyle=c;X.font='bold 9px monospace';X.fillText(v,x2,18);});
-  /* ticker */
-  X.save();X.globalAlpha=0.8;X.fillStyle='rgba(0,0,0,0.6)';X.fillRect(0,Math.round(H)-16,W,16);
+  X.restore(); /* end HUD clean transform */
+
+  /* ticker - also clean transform */
+  X.save();
+  X.setTransform(DPR,0,0,DPR,0,0);X.globalAlpha=0.8;X.fillStyle='rgba(0,0,0,0.6)';X.fillRect(0,Math.round(H)-16,W,16);
   X.strokeStyle='#444';X.lineWidth=0.5;X.beginPath();X.moveTo(0,H-16);X.lineTo(W,H-16);X.stroke();
   let tx=tickerX;
   tks.forEach(t=>{X.fillStyle=t.includes('GME')?'#ff5555':t.includes('ETH')?'#8888ff':'#00cc44';X.font='bold 8px monospace';X.fillText(t,tx,H-5);tx+=X.measureText(t).width+20;});
