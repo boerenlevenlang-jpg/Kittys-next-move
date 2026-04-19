@@ -8,7 +8,7 @@ html,body{background:#000;width:100%;overflow-x:hidden}
 body{display:flex;flex-direction:column;align-items:center}
 #wrap{position:relative;width:100%;max-width:680px}
 #bg{display:block;width:100%;height:auto}
-#gc{position:absolute;cursor:none;touch-action:none;transition:all 0.3s ease}
+#gc{position:absolute;cursor:none;touch-action:none}
 #rules-overlay{position:absolute;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;}
 #skip-btn{position:absolute;z-index:200;cursor:pointer}
 #links-desktop{position:absolute}
@@ -35,7 +35,7 @@ body{display:flex;flex-direction:column;align-items:center}
   <canvas id="gc"></canvas>
 
 
-<div id="links-desktop" style="position:absolute;top:762px;left:29px;width:619px;display:flex;flex-direction:column;gap:5px;align-items:center;">
+<div id="links-desktop" style="position:absolute;display:none;flex-direction:column;gap:5px;align-items:center;">
   <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2px;color:#888;text-align:center;width:100%">THE SIGNAL DIDN&rsquo;T DISAPPEAR &mdash; IT MOVED &mdash; @UNITYONETH</div>
   <div style="width:100%;display:flex;gap:5px;">
     <a href="https://app.uniswap.org/explore/tokens/ethereum/0xfd0bb211d479710dfa01d3d98751767f51edb2d9" target="_blank" style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:#fff;text-decoration:none;background:#ff007a;height:34px;line-height:34px;border-radius:4px;border-bottom:3px solid #aa0050;flex:1;text-align:center;display:block">BUY $UNITY</a>
@@ -156,8 +156,10 @@ C.width=Math.round(W*DPR);
 C.height=Math.round(H*DPR);
 // CSS size handled by positionGameCanvas
 X.scale(DPR,DPR);
+X.translate(0.5/DPR, 0.5/DPR); // pixel align
 X.imageSmoothingEnabled=true;
 X.imageSmoothingQuality='high';
+X.textBaseline='alphabetic';
 // Position canvas immediately
 positionGameCanvas();
 updateLinksVisibility();
@@ -373,10 +375,7 @@ function drawCutscene(){
   X.fillRect(0,H-4,W*p,4);
 
   // Skip hint
-  X.save();X.globalAlpha=0.3;
-  X.fillStyle='#fff';X.font='9px monospace';X.textAlign='right';X.textBaseline='top';
-  X.fillText('tap to skip',W-12,10);
-  X.restore();
+
 
   // Lines
   X.save();X.globalAlpha=alpha;
@@ -664,11 +663,11 @@ function loop(){
   parts.forEach(p=>{X.save();X.globalAlpha=p.life;X.fillStyle=p.col;X.beginPath();X.arc(p.x,p.y,p.sz,0,Math.PI*2);X.fill();X.restore();});
   floats.forEach(f=>{X.save();X.globalAlpha=f.life;X.translate(f.x,f.y);X.scale(f.sc,f.sc);X.font='bold 10px monospace';X.textAlign='center';X.textBaseline='middle';X.strokeStyle='#fff';X.lineWidth=2;X.strokeText(f.txt,0,0);X.fillStyle=f.col;X.fillText(f.txt,0,0);X.restore();});
   /* HUD */
-  X.fillStyle='rgba(0,0,0,0.5)';X.fillRect(0,0,W,20);
+  X.fillStyle='rgba(0,0,0,0.55)';X.fillRect(0,0,W,Math.round(20));
   const hd=[['$UNITY',score.toLocaleString(),'#f5c842',4],['U',uCount,'#00cc44',90],['LIVES',lives<=0?'OUT':'♥'.repeat(Math.max(1,lives)),'#e03030',130],['WAVE',waveName(wave),'#aaddff',150],['⏳',daysLeftStr(),'#ff9944',330],['x',combo,'#f5c842',245]];
   hd.forEach(([l,v,c,x2])=>{X.fillStyle='#555';X.font='6px monospace';X.textAlign='left';X.fillText(l,x2,8);X.fillStyle=c;X.font='bold 9px monospace';X.fillText(v,x2,18);});
   /* ticker */
-  X.save();X.globalAlpha=0.8;X.fillStyle='rgba(0,0,0,0.55)';X.fillRect(0,H-16,W,16);
+  X.save();X.globalAlpha=0.8;X.fillStyle='rgba(0,0,0,0.6)';X.fillRect(0,Math.round(H)-16,W,16);
   X.strokeStyle='#444';X.lineWidth=0.5;X.beginPath();X.moveTo(0,H-16);X.lineTo(W,H-16);X.stroke();
   let tx=tickerX;
   tks.forEach(t=>{X.fillStyle=t.includes('GME')?'#ff5555':t.includes('ETH')?'#8888ff':'#00cc44';X.font='bold 8px monospace';X.fillText(t,tx,H-5);tx+=X.measureText(t).width+20;});
