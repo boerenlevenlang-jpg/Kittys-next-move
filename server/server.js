@@ -52,8 +52,8 @@ async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 
 function mainKeyboard(){
   return {inline_keyboard:[
-    [{text:'🎮 Play & Win',web_app:{url:MINI_APP_URL}}],
-    [{text:'🌐 Open in Browser',url:MINI_APP_URL}],
+    [{text:'🎮 PLAY IN TELEGRAM — WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}],
+    [{text:'🖥️ Open Full Game in Browser →',url:MINI_APP_URL}],
     [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 Chart',url:DEX_URL}]
   ]};
 }
