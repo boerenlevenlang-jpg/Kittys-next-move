@@ -12,6 +12,37 @@ body{display:flex;flex-direction:column;align-items:center}
 #rules-overlay{position:absolute;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;}
 #skip-btn{position:absolute;z-index:200;cursor:pointer}
 #links-desktop{position:absolute}
+#fullscreen-game{
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100vw;height:100vh;
+  background:#000;
+  z-index:1000;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+#fullscreen-game canvas{
+  max-width:100vw;
+  max-height:100vh;
+  touch-action:none;
+}
+#exit-fs-btn{
+  position:fixed;
+  top:8px;right:8px;
+  z-index:1001;
+  background:rgba(0,0,0,0.7);
+  border:1px solid #555;
+  color:#fff;
+  font-family:'Bebas Neue',monospace;
+  font-size:12px;
+  letter-spacing:1px;
+  padding:6px 12px;
+  border-radius:4px;
+  cursor:pointer;
+  display:none;
+}
 </style>
 </head><body>
 <div id="wrap">
@@ -380,11 +411,27 @@ function drawCutscene(){
     if(curScreen>=SCREENS.length){
       cutsceneDone=true;
       X.fillStyle='#060606';X.fillRect(0,0,W,H);
-      positionGameCanvas();document.getElementById('rules-overlay').style.display='flex';
+      positionGameCanvas();const _ro=document.getElementById('rules-overlay');
+    _ro.style.display='flex';
+    // On mobile make rules overlay also fullscreen
+    if(isMobile()){
+      _ro.style.position='fixed';
+      _ro.style.top='0';_ro.style.left='0';
+      _ro.style.width='100vw';_ro.style.height='100vh';
+      _ro.style.zIndex='1000';
+    }
       return;
     }
   }
-  if(curScreen>=SCREENS.length){cutsceneDone=true;positionGameCanvas();document.getElementById('rules-overlay').style.display='flex';return;}
+  if(curScreen>=SCREENS.length){cutsceneDone=true;positionGameCanvas();const _ro=document.getElementById('rules-overlay');
+    _ro.style.display='flex';
+    // On mobile make rules overlay also fullscreen
+    if(isMobile()){
+      _ro.style.position='fixed';
+      _ro.style.top='0';_ro.style.left='0';
+      _ro.style.width='100vw';_ro.style.height='100vh';
+      _ro.style.zIndex='1000';
+    }return;}
   const sc2=SCREENS[curScreen];
   if(!sc2){cutsceneDone=true;return;}
   const p=screenFrame/sc2.dur;
@@ -438,6 +485,7 @@ function daysLeftStr(){
 function showGameOver(){
   gameOver=true;
   zoomOut();
+  exitFullscreenGame();
   const _wrap=document.getElementById('wrap');
   const _scale=_wrap.offsetWidth/680;
   const gcTop=Math.round(236*_scale);
@@ -481,7 +529,15 @@ function skipToRules(){
     cutsceneDone=true;
     X.fillStyle='#060606';X.fillRect(0,0,W,H);
     document.getElementById('skip-btn').style.display='none';
-    positionGameCanvas();document.getElementById('rules-overlay').style.display='flex';
+    positionGameCanvas();const _ro=document.getElementById('rules-overlay');
+    _ro.style.display='flex';
+    // On mobile make rules overlay also fullscreen
+    if(isMobile()){
+      _ro.style.position='fixed';
+      _ro.style.top='0';_ro.style.left='0';
+      _ro.style.width='100vw';_ro.style.height='100vh';
+      _ro.style.zIndex='1000';
+    }
   }
 }
 
@@ -492,9 +548,75 @@ function toggleZoom(){
   else{zoomIntoGame();_zoomed=true;document.getElementById('zoom-btn').textContent='🗗';}
 }
 
+
+/* ── Mobile fullscreen game ── */
+function isMobile(){return window.innerWidth<=700;}
+
+function enterFullscreenGame(){
+  if(!isMobile())return;
+  const gc=document.getElementById('gc');
+  const ro=document.getElementById('rules-overlay');
+  // Save original styles
+  gc._origStyle={left:gc.style.left,top:gc.style.top,width:gc.style.width,height:gc.style.height,position:gc.style.position,zIndex:gc.style.zIndex};
+  // Make gc fixed fullscreen
+  gc.style.position='fixed';
+  gc.style.left='0';
+  gc.style.top='0';
+  gc.style.width='100vw';
+  gc.style.height='100vh';
+  gc.style.zIndex='1000';
+  // Show exit button
+  document.getElementById('exit-fs-btn').style.display='block';
+  // Prevent body scroll
+  document.body.style.overflow='hidden';
+  document.body.style.position='fixed';
+  document.body.style.width='100%';
+}
+
+function exitFullscreenGame(){
+  const gc=document.getElementById('gc');
+  if(gc._origStyle){
+    gc.style.position='absolute';
+    gc.style.left=gc._origStyle.left;
+    gc.style.top=gc._origStyle.top;
+    gc.style.width=gc._origStyle.width;
+    gc.style.height=gc._origStyle.height;
+    gc.style.zIndex=gc._origStyle.zIndex||'';
+  }
+  document.getElementById('exit-fs-btn').style.display='none';
+  document.body.style.overflow='';
+  document.body.style.position='';
+  document.body.style.width='';
+  // Show game over if lives gone, else pause
+  if(!gameOver){
+    gameStarted=false;
+    // Show a resume button
+    showResumeOverlay();
+  }
+}
+
+function showResumeOverlay(){
+  const ro=document.getElementById('rules-overlay');
+  ro.innerHTML=`
+    <div style="color:#f5c842;font-size:22px;letter-spacing:3px;margin-bottom:16px">GAME PAUSED</div>
+    <div style="color:#aaa;font-size:12px;letter-spacing:1px;margin-bottom:20px">Score: ${score.toLocaleString()}</div>
+    <button onclick="resumeGame()" style="font-family:'Bebas Neue',monospace;font-size:16px;letter-spacing:2px;background:#cc0000;color:#fff;border:none;border-bottom:3px solid #880000;padding:10px 30px;border-radius:4px;cursor:pointer;width:100%">RESUME</button>
+  `;
+  ro.style.display='flex';
+}
+
+function resumeGame(){
+  const ro=document.getElementById('rules-overlay');
+  ro.style.display='none';
+  gameStarted=true;
+  enterFullscreenGame();
+  loop();
+}
+
 function startGame(){
   document.getElementById('rules-overlay').style.display='none';
   gameStarted=true;
+  enterFullscreenGame();
   const sb=document.getElementById('skip-btn');if(sb)sb.style.display='none';
   score=0;lives=3;wave=1;combo=1;cTimer=0;uCount=0;
   items=[];parts=[];floats=[];
@@ -567,4 +689,6 @@ C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClien
 loop();
 </script>
 
+
+<div id="exit-fs-btn" onclick="exitFullscreenGame()">✕ EXIT</div>
 </body></html>
