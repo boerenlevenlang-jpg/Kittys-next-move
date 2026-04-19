@@ -4,14 +4,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:#000;width:100%}
+html,body{background:#000;width:100%;overflow-x:hidden}
 body{display:flex;flex-direction:column;align-items:center}
 #wrap{position:relative;width:100%;max-width:680px}
 #bg{display:block;width:100%;height:auto}
 #gc{position:absolute;cursor:none;touch-action:none}
-.links-bar{width:100%;max-width:680px}
-#rules-overlay{position:absolute}
-#skip-btn{position:absolute;z-index:60}
+#rules-overlay{position:absolute;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;}
+#skip-btn{position:absolute;z-index:200;cursor:pointer}
+#links-desktop{position:absolute}
 </style>
 </head><body>
 <div id="wrap">
@@ -31,7 +31,7 @@ body{display:flex;flex-direction:column;align-items:center}
   <div style="font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;color:#999;text-align:center;width:100%">CONTRACT: 0xFd0bb211d479710dFa01d3d98751767F51edb2d9 &bull; ETH MAINNET</div>
 </div>
 
-<div id="rules-overlay" style="display:none;position:absolute;top:236px;left:101px;width:478px;height:310px;background:#060606;flex-direction:column;align-items:center;justify-content:center;gap:0px;font-family:'Bebas Neue',monospace;z-index:50;padding:18px 20px;box-sizing:border-box;">
+<div id="rules-overlay">
   <div style="color:#f5c842;font-size:20px;letter-spacing:3px;margin-bottom:10px;text-align:center">HOW TO PLAY</div>
 
   <div style="width:100%;display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
@@ -79,7 +79,7 @@ body{display:flex;flex-direction:column;align-items:center}
   ">FOLLOW THE MOVE — PLAY NOW</button>
 </div>
 
-<div id="skip-btn" style="position:absolute;top:0;right:0;z-index:60;cursor:pointer;display:block;">
+<div id="skip-btn">
   <div onclick="skipToRules()" style="
     font-family:'Bebas Neue',monospace;
     font-size:10px;
@@ -166,12 +166,36 @@ updateLinksVisibility();
 
 function positionGameCanvas(){
   const wrap=document.getElementById('wrap');
-  const scale=wrap.offsetWidth/ORIG_W;
+  const scale=wrap.offsetWidth/680;
+  
+  // Game canvas
   const gc=document.getElementById('gc');
-  gc.style.left=(SCREEN.left*scale)+'px';
-  gc.style.top=(SCREEN.top*scale)+'px';
-  gc.style.width=(SCREEN.width*scale)+'px';
-  gc.style.height=(SCREEN.height*scale)+'px';
+  gc.style.left=Math.round(101*scale)+'px';
+  gc.style.top=Math.round(236*scale)+'px';
+  gc.style.width=Math.round(478*scale)+'px';
+  gc.style.height=Math.round(310*scale)+'px';
+  
+  // Rules overlay - same position as game canvas
+  const ro=document.getElementById('rules-overlay');
+  ro.style.left=Math.round(101*scale)+'px';
+  ro.style.top=Math.round(236*scale)+'px';
+  ro.style.width=Math.round(478*scale)+'px';
+  ro.style.height=Math.round(310*scale)+'px';
+  
+  // Skip button - top right of game canvas
+  const sb=document.getElementById('skip-btn');
+  if(sb){
+    sb.style.left=(Math.round(101*scale)+Math.round(478*scale)-70)+'px';
+    sb.style.top=(Math.round(236*scale)+4)+'px';
+  }
+  
+  // Desktop links bar
+  const dl=document.getElementById('links-desktop');
+  if(dl){
+    dl.style.left=Math.round(29*scale)+'px';
+    dl.style.top=Math.round(762*scale)+'px';
+    dl.style.width=Math.round(619*scale)+'px';
+  }
 }
 window.addEventListener('resize',positionGameCanvas);
 positionGameCanvas();
