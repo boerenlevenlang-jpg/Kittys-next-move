@@ -386,6 +386,7 @@ function hit(){
         lives--;combo=1;cTimer=0;shake=10;
         spawnParts(it.x,it.y,'#e03030',10);
         spawnFloat(it.x,it.y-it.r,it.t.id==='GME'?'PAPER HANDS!':'REKT!','#ff4444');
+        if(lives<=0){gameOver=true;setTimeout(showGameOver,800);}
       }
     }
   });
@@ -679,7 +680,7 @@ function loop(){
   items.forEach(i=>{
     i.x+=i.vx;i.y+=i.vy;i.ang+=i.sp;
     if(i.y>H+40){
-      if(i.t.good&&i.t.id==='U'){lives--;spawnFloat(rnd(50,W-50),H-25,'OUT OF SYNC!','#ff6666');if(lives<=0){setTimeout(showGameOver,800);}}
+      if(i.t.good&&i.t.id==='U'){lives--;spawnFloat(rnd(50,W-50),H-25,'OUT OF SYNC!','#ff6666');if(lives<=0){gameOver=true;setTimeout(showGameOver,800);}}
       i.alive=false;
     }
   });
