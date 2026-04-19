@@ -208,8 +208,9 @@ app.post('/webhook',async(req,res)=>{
       await tgSend(chatId,
         `👋 Welcome, ${name}!\n\n`+
         `You just joined the sharpest community in crypto.\n\n`+
-        `Roaring Kitty left 4 clues. They all point to <b>$UNITY</b>.\n`+
-        `The $GME meme token hit $160M. $UNITY hasn't moved yet.\n\n`+
+        `Roaring Kitty left 4 clues pointing to Unity Software ($U stock).\n`+
+        `$UNITY is the Ethereum meme token riding that signal.\n`+
+        `The $GME meme token hit $160M. $UNITY on ETH hasn't moved yet.\n\n`+
         `🎮 Play the game. Win <b>${PRIZE} $UNITY tokens</b>.\n`+
         `📌 CA: <code>${CA}</code>\n\n`+
         `Type /start to begin.`,
@@ -231,9 +232,10 @@ app.post('/webhook',async(req,res)=>{
       `🐱 <b>Kitty's Next Move</b>\n\n`+
       `Roaring Kitty turned $53K into $48M calling GameStop before anyone.\n`+
       `He went silent. Then left 4 cryptic tweets.\n`+
-      `All four point to one thing: <b>$UNITY on Ethereum.</b>\n\n`+
-      `The $GME meme token hit $160M market cap.\n`+
-      `<b>$UNITY hasn't moved yet.</b>\n\n`+
+      `All four point to Unity Software — ticker <b>$U</b> on the stock market.\n\n`+
+      `We are <b>$UNITY</b> — the meme token on Ethereum built around that signal.\n`+
+      `The $GME meme token hit $160M. We're doing the same for $U.\n`+
+      `<b>$UNITY on ETH hasn't moved yet.</b>\n\n`+
       `━━━━━━━━━━━━━━━\n`+
       `🎮 <b>PLAY & WIN</b>\n`+
       `Guide the kitty. Catch $UNITY cubes.\n`+
@@ -255,7 +257,9 @@ app.post('/webhook',async(req,res)=>{
   else if(text==='/clues'){
     await send(
       `🔍 <b>Roaring Kitty's 4 Clues</b>\n\n`+
-      `He never says the ticker. He shows you.\n\n`+
+      `These are real tweets by Keith Gill (Roaring Kitty).\n`+
+      `They point to Unity Software — the stock ticker $U.\n`+
+      `$UNITY on Ethereum is the meme token built around that signal.\n\n`+
       `🎁 <b>Tweet 1 — Gift Box</b>\n`+
       `The box shape = Unity Engine cube logo.\n\n`+
       `📺 <b>Tweet 2 — TIME Magazine Cover</b>\n`+
@@ -278,7 +282,8 @@ app.post('/webhook',async(req,res)=>{
   else if(text==='/about'){
     await send(
       `📖 <b>What is $UNITY?</b>\n\n`+
-      `$UNITY is the official meme token on Ethereum inspired by Roaring Kitty's 4 cryptic tweets — all pointing to Unity Software ($U).\n\n`+
+      `$UNITY is the meme token on Ethereum inspired by Roaring Kitty's 4 cryptic tweets — all pointing to Unity Software, ticker $U on the stock market.\n\n`+
+      `Just like $GME meme coins captured the GameStop movement, $UNITY captures the signal Roaring Kitty is sending about Unity Software.\n\n`+
       `🏆 <b>Why $UNITY?</b>\n`+
       `• Roaring Kitty called $GME before the world knew\n`+
       `• The $GME meme token hit $160M market cap\n`+
