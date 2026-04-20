@@ -66,7 +66,6 @@ function mainKeyboard(chatId){
 
 /* ── API routes ── */
 app.post('/api/score',async(req,res)=>{
-  console.log('[score]', req.body?.playerName, req.body?.score);
   const{playerId,playerName,score,wave,uCount}=req.body;
   if(!playerId||!playerName||typeof score!=='number')return res.status(400).json({error:'Invalid'});
   if(score>9999999)return res.status(400).json({error:'Too high'});
@@ -86,7 +85,7 @@ app.post('/api/score',async(req,res)=>{
       `@${playerName} leads with <b>${score.toLocaleString()} $UNITY</b>\n\n`+
       `${top3}\n\n`+
       `⏳ ${daysLeft(period)} days left — 💎 ${PRIZE} $UNITY prize`,
-      {reply_markup:mainKeyboard(chatId)}
+      {reply_markup:mainKeyboard(null)}
     );
   }
   res.json({rank,total:board.length,period,daysLeft:daysLeft(period)});
@@ -128,7 +127,7 @@ app.post('/admin/mark-paid',adminAuth,async(req,res)=>{
       `👑 @${winner.playerName} wins ${PRIZE} $UNITY\n`+
       `🔗 <a href="https://etherscan.io/tx/${txHash}">Etherscan</a>\n\n`+
       `New round starts now. Don't sleep on Roaring Kitty again.`,
-      {reply_markup:mainKeyboard(chatId)}
+      {reply_markup:mainKeyboard(null)}
     );
   }
   res.json({success:true});
@@ -144,7 +143,7 @@ app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
     msg+=`No players yet. Be first.\n`;
   }
   msg+=`\n<code>${CA}</code>`;
-  await tgChannel(msg,{reply_markup:mainKeyboard(chatId)});
+  await tgChannel(msg,{reply_markup:mainKeyboard(null)});
   res.json({success:true});
 });
 
