@@ -572,8 +572,6 @@ function resumeMobileGame(){
   loop();
 }
 
-let tickerX=0;
-const tks=['$UNITY +741% ▲','GME: AVOID','ETH MAINNET','DIAMOND HANDS','CONNECT THE DOTS','SIGNAL DETECTED'];
 
 function skipToRules(){
   if(!cutsceneDone){
@@ -660,15 +658,6 @@ function loop(){
   const hd=[['$UNITY',score.toLocaleString(),'#f5c842',4],['U',uCount,'#00cc44',90],['LIVES',lives<=0?'OUT':'♥'.repeat(Math.max(1,lives)),'#e03030',130],['WAVE',waveName(wave),'#aaddff',150],['⏳',daysLeftStr(),'#ff9944',330],['x',combo,'#f5c842',245]];
   X.textBaseline='top';hd.forEach(([l,v,c,x2])=>{X.fillStyle='#555';X.font='6px monospace';X.textAlign='left';X.fillText(l,Math.round(x2),2);X.fillStyle=c;X.font='bold 9px monospace';X.fillText(v,Math.round(x2),9);});
   X.restore(); /* end HUD clean transform */
-
-  /* ticker - also clean transform */
-  X.save();
-  X.setTransform(DPR,0,0,DPR,0,0);X.globalAlpha=0.8;X.fillStyle='rgba(0,0,0,0.6)';X.fillRect(0,Math.round(H)-16,W,16);
-  X.strokeStyle='#444';X.lineWidth=0.5;X.beginPath();X.moveTo(0,H-16);X.lineTo(W,H-16);X.stroke();
-  let tx=tickerX;
-  tks.forEach(t=>{X.fillStyle=t.includes('GME')?'#ff5555':t.includes('ETH')?'#8888ff':'#00cc44';X.font='bold 8px monospace';X.fillText(t,tx,H-5);tx+=X.measureText(t).width+20;});
-  X.restore();
-  tickerX-=0.6;if(tickerX<-330)tickerX=0;
   drawKitty(mx,my);
   /* crosshair */
   const p2=Math.sin(frame*.1)*1.5;
