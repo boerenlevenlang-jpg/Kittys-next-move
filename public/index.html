@@ -114,11 +114,13 @@ function askUsernameIfNeeded(){
   const u = getTgUser();
   if(u) return; // Telegram provides it automatically
   const stored = localStorage.getItem('unity_pname');
-  if(stored && stored !== 'Player') return; // already have it
+  // Skip if we already have a real username (not Player or anon_xxx)
+  if(stored && stored !== 'Player' && !stored.startsWith('anon_')) return;
   const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
   if(name && name.trim()){
     const clean = name.trim().replace(/^@/,'');
     localStorage.setItem('unity_pname', clean);
+    localStorage.setItem('unity_pid', 'browser_'+clean); // consistent ID
   }
 }
 askUsernameIfNeeded();
@@ -158,11 +160,13 @@ function askUsernameIfNeeded(){
   const u = getTgUser();
   if(u) return; // Telegram provides it automatically
   const stored = localStorage.getItem('unity_pname');
-  if(stored && stored !== 'Player') return; // already have it
+  // Skip if we already have a real username (not Player or anon_xxx)
+  if(stored && stored !== 'Player' && !stored.startsWith('anon_')) return;
   const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
   if(name && name.trim()){
     const clean = name.trim().replace(/^@/,'');
     localStorage.setItem('unity_pname', clean);
+    localStorage.setItem('unity_pid', 'browser_'+clean); // consistent ID
   }
 }
 askUsernameIfNeeded();
@@ -728,11 +732,13 @@ function askUsernameIfNeeded(){
   const u = getTgUser();
   if(u) return; // Telegram provides it automatically
   const stored = localStorage.getItem('unity_pname');
-  if(stored && stored !== 'Player') return; // already have it
+  // Skip if we already have a real username (not Player or anon_xxx)
+  if(stored && stored !== 'Player' && !stored.startsWith('anon_')) return;
   const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
   if(name && name.trim()){
     const clean = name.trim().replace(/^@/,'');
     localStorage.setItem('unity_pname', clean);
+    localStorage.setItem('unity_pid', 'browser_'+clean); // consistent ID
   }
 }
 askUsernameIfNeeded();
