@@ -167,7 +167,11 @@ app.post('/webhook',async(req,res)=>{
   }
 
   const msg=req.body?.message; if(!msg)return;
-  const chatId=msg.chat.id, text=(msg.text||'').trim();
+  const chatId=msg.chat.id;
+  // Strip @botname suffix from commands (e.g. /start@unityoneth_bot -> /start)
+  const rawText=(msg.text||'').trim();
+  const text=rawText.replace(/@\w+$/,'').trim();
+  console.log('[command]', text, 'from chat', chatId);
   const userId=String(msg.from?.id||''), userName=msg.from?.username||msg.from?.first_name||'Player';
   const send=(t,e={})=>tgSend(chatId,t,e);
   const period=currentPeriod();
