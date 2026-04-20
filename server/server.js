@@ -51,10 +51,16 @@ async function tgSend(chatId,text,extra={}){
 }
 async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 
-function mainKeyboard(){
+function mainKeyboard(chatId){
+  // web_app buttons only work in private chats (positive chat IDs)
+  // Groups have negative chat IDs
+  const isPrivate = !chatId || Number(chatId) > 0;
+  const playBtn = isPrivate
+    ? {text:'🎮 PLAY IN TELEGRAM — WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}
+    : {text:'🎮 PLAY — WIN 1 TRILLION $UNITY',url:MINI_APP_URL};
   return {inline_keyboard:[
-    [{text:'🎮 PLAY IN TELEGRAM — WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}],
-    [{text:'🖥️ Open Full Game in Browser →',url:MINI_APP_URL}],
+    [playBtn],
+    [{text:'🖥️ Open in Browser',url:MINI_APP_URL}],
     [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 Chart',url:DEX_URL}]
   ]};
 }
@@ -80,7 +86,7 @@ app.post('/api/score',async(req,res)=>{
       `@${playerName} leads with <b>${score.toLocaleString()} $UNITY</b>\n\n`+
       `${top3}\n\n`+
       `⏳ ${daysLeft(period)} days left — 💎 ${PRIZE} $UNITY prize`,
-      {reply_markup:mainKeyboard()}
+      {reply_markup:mainKeyboard(chatId)}
     );
   }
   res.json({rank,total:board.length,period,daysLeft:daysLeft(period)});
@@ -122,7 +128,7 @@ app.post('/admin/mark-paid',adminAuth,async(req,res)=>{
       `👑 @${winner.playerName} wins ${PRIZE} $UNITY\n`+
       `🔗 <a href="https://etherscan.io/tx/${txHash}">Etherscan</a>\n\n`+
       `New round starts now. Don't sleep on Roaring Kitty again.`,
-      {reply_markup:mainKeyboard()}
+      {reply_markup:mainKeyboard(chatId)}
     );
   }
   res.json({success:true});
@@ -138,7 +144,7 @@ app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
     msg+=`No players yet. Be first.\n`;
   }
   msg+=`\n<code>${CA}</code>`;
-  await tgChannel(msg,{reply_markup:mainKeyboard()});
+  await tgChannel(msg,{reply_markup:mainKeyboard(chatId)});
   res.json({success:true});
 });
 
@@ -160,7 +166,7 @@ app.post('/webhook',async(req,res)=>{
         `$UNITY is the ETH meme token riding that signal.\n\n`+
         `🎮 Play. Win ${PRIZE} $UNITY.\n`+
         `<code>${CA}</code>`,
-        {reply_markup:mainKeyboard()}
+        {reply_markup:mainKeyboard(chatId)}
       );
     }
     return;
@@ -187,7 +193,7 @@ app.post('/webhook',async(req,res)=>{
       `🏆 Play & win ${PRIZE} $UNITY this month.\n`+
       `⏳ ${daysLeft(period)} days left.\n\n`+
       `Don't sleep on Roaring Kitty again.`,
-      {reply_markup:mainKeyboard()}
+      {reply_markup:mainKeyboard(chatId)}
     );
   }
   else if(text==='/clues'){
@@ -201,7 +207,7 @@ app.post('/webhook',async(req,res)=>{
       `Four posts. Same direction.\n`+
       `Not hidden. Just ignored.\n\n`+
       `https://x.com/TheRoaringKitty`,
-      {reply_markup:mainKeyboard()}
+      {reply_markup:mainKeyboard(chatId)}
     );
   }
   else if(text==='/buy'){
@@ -229,7 +235,7 @@ app.post('/webhook',async(req,res)=>{
       r+=`${medals[i]} @${row.playerName} — ${Number(row.score).toLocaleString()}${row.walletAddr?'':' ⚠️'}\n`;
     });
     r+=`\n⚠️ = no wallet — use /wallet 0xAddress to register`;
-    await send(r,{reply_markup:mainKeyboard()});
+    await send(r,{reply_markup:mainKeyboard(chatId)});
   }
   else if(text.startsWith('/wallet')){
     const addr=text.split(' ')[1];
@@ -255,7 +261,7 @@ app.post('/webhook',async(req,res)=>{
       `/clues — Roaring Kitty's 4 clues\n`+
       `/leaderboard — scores, standings & time left\n`+
       `/wallet 0xAddress — register to win`,
-      {reply_markup:mainKeyboard()}
+      {reply_markup:mainKeyboard(chatId)}
     );
   }
   }catch(err){console.error('[webhook error]',err.message);}
