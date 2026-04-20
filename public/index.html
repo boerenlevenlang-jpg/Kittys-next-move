@@ -456,26 +456,27 @@ window.addEventListener('resize',updateLinksVisibility);
 
 
 /* ── Score submission to server ── */
-let _tgUser = null;
-try {
-  if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe){
-    _tgUser = window.Telegram.WebApp.initDataUnsafe.user || null;
-  }
-} catch(e){}
+function getTgUser(){
+  try{
+    if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initDataUnsafe){
+      return window.Telegram.WebApp.initDataUnsafe.user||null;
+    }
+  }catch(e){}
+  return null;
+}
 
 function getPlayerId(){
-  if(_tgUser && _tgUser.id) return String(_tgUser.id);
-  // Fallback: generate a session ID
+  const u=getTgUser();
+  if(u&&u.id) return String(u.id);
   if(!localStorage.getItem('unity_pid')){
-    localStorage.setItem('unity_pid', 'anon_'+Math.random().toString(36).slice(2,10));
+    localStorage.setItem('unity_pid','anon_'+Math.random().toString(36).slice(2,10));
   }
   return localStorage.getItem('unity_pid');
 }
 
 function getPlayerName(){
-  if(_tgUser){
-    return _tgUser.username || _tgUser.first_name || 'Player';
-  }
+  const u=getTgUser();
+  if(u) return u.username||u.first_name||'Player';
   return 'Player';
 }
 
