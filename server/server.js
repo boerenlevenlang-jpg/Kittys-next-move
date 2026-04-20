@@ -38,7 +38,6 @@ function getBoard(period){
 }
 
 async function tgSend(chatId,text,extra={}){
-  console.log('[tgSend] to:', chatId, 'text:', text.slice(0,50));
   if(!BOT_TOKEN){console.log('[TG]',text.slice(0,80));return;}
   try{
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
@@ -67,6 +66,7 @@ function mainKeyboard(chatId){
 
 /* ── API routes ── */
 app.post('/api/score',async(req,res)=>{
+  console.log('[score]', req.body?.playerName, req.body?.score);
   const{playerId,playerName,score,wave,uCount}=req.body;
   if(!playerId||!playerName||typeof score!=='number')return res.status(400).json({error:'Invalid'});
   if(score>9999999)return res.status(400).json({error:'Too high'});
@@ -152,8 +152,6 @@ app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
 app.post('/webhook',async(req,res)=>{
   res.sendStatus(200);
   try{
-  console.log('[webhook] body:', JSON.stringify(req.body).slice(0,200));
-
   /* Welcome new members */
   const newMembers=req.body?.message?.new_chat_members;
   if(newMembers?.length>0){
@@ -177,7 +175,6 @@ app.post('/webhook',async(req,res)=>{
   // Strip @botname suffix from commands (e.g. /start@unityoneth_bot -> /start)
   const rawText=(msg.text||'').trim();
   const text=rawText.replace(/@\w+$/,'').trim();
-  console.log('[command]', text, 'from chat', chatId);
   const userId=String(msg.from?.id||''), userName=msg.from?.username||msg.from?.first_name||'Player';
   const send=(t,e={})=>tgSend(chatId,t,e);
   const period=currentPeriod();
