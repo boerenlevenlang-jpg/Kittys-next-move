@@ -144,6 +144,7 @@ app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
 /* ── Bot webhook ── */
 app.post('/webhook',async(req,res)=>{
   res.sendStatus(200);
+  try{
 
   /* Welcome new members */
   const newMembers=req.body?.message?.new_chat_members;
@@ -185,14 +186,13 @@ app.post('/webhook',async(req,res)=>{
   }
   else if(text==='/clues'){
     await send(
-      `🔍 <b>The 4 Roaring Kitty Clues</b>\n\n`+
-      `From Roaring Kitty\n\n`+
-      `🎁 Gift box → matches Unity Engine cube logo\n`+
-      `📺 TIME cover → "YOU" → "U" ($U ticker)\n`+
-      `✊ Rick James: "UNITY!"\n`+
-      `🐕 Futurama dog → "I Will Wait for U"\n\n`+
-      `Four posts.\n`+
-      `Same direction.\n\n`+
+      `<b>The 4 Roaring Kitty Clues</b>\n\n`+
+      `From Roaring Kitty:\n\n`+
+      `[1] Gift box - matches Unity Engine cube logo\n`+
+      `[2] TIME cover - "YOU" means "U" ($U ticker)\n`+
+      `[3] Rick James skit - "UNITY!"\n`+
+      `[4] Futurama dog - "I Will Wait for U"\n\n`+
+      `Four posts. Same direction.\n`+
       `Not hidden. Just ignored.\n\n`+
       `https://x.com/TheRoaringKitty`,
       {reply_markup:mainKeyboard()}
@@ -252,6 +252,7 @@ app.post('/webhook',async(req,res)=>{
       {reply_markup:mainKeyboard()}
     );
   }
+  }catch(err){console.error('[webhook error]',err.message);}
 });
 
 ensureComp(currentPeriod());
