@@ -38,6 +38,7 @@ function getBoard(period){
 }
 
 async function tgSend(chatId,text,extra={}){
+  console.log('[tgSend] to:', chatId, 'text:', text.slice(0,50));
   if(!BOT_TOKEN){console.log('[TG]',text.slice(0,80));return;}
   try{
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
@@ -145,6 +146,7 @@ app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
 app.post('/webhook',async(req,res)=>{
   res.sendStatus(200);
   try{
+  console.log('[webhook] body:', JSON.stringify(req.body).slice(0,200));
 
   /* Welcome new members */
   const newMembers=req.body?.message?.new_chat_members;
