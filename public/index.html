@@ -124,7 +124,7 @@ bgImg.src='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAw
 
 const C=document.getElementById('gc'),X=C.getContext('2d');
 const W=478,H=310;
-const DPR=Math.min(window.devicePixelRatio||1, 3); // max 3x
+const DPR=Math.min(Math.round(window.devicePixelRatio||1), 3);
 C.width=Math.round(W*DPR);
 C.height=Math.round(H*DPR);
 // CSS size handled by positionGameCanvas
@@ -657,7 +657,7 @@ function loop(){
   X.setTransform(DPR,0,0,DPR,0,0);
   X.fillStyle='rgba(0,0,0,0.55)';X.fillRect(0,0,W,Math.round(20));
   const hd=[['$UNITY',score.toLocaleString(),'#f5c842',4],['U',uCount,'#00cc44',90],['LIVES',lives<=0?'OUT':'♥'.repeat(Math.max(1,lives)),'#e03030',130],['WAVE',waveName(wave),'#aaddff',150],['⏳',daysLeftStr(),'#ff9944',330],['x',combo,'#f5c842',245]];
-  hd.forEach(([l,v,c,x2])=>{X.fillStyle='#555';X.font='6px monospace';X.textAlign='left';X.fillText(l,x2,8);X.fillStyle=c;X.font='bold 9px monospace';X.fillText(v,x2,18);});
+  X.textBaseline='top';hd.forEach(([l,v,c,x2])=>{X.fillStyle='#555';X.font='6px monospace';X.textAlign='left';X.fillText(l,Math.round(x2),2);X.fillStyle=c;X.font='bold 9px monospace';X.fillText(v,Math.round(x2),9);});
   X.restore(); /* end HUD clean transform */
 
   /* ticker - also clean transform */
