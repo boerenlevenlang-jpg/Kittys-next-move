@@ -494,7 +494,20 @@ function getPlayerName(){
     return name;
   }
   // Fall back to stored name from previous Telegram session
-  return localStorage.getItem('unity_pname')||'Player';
+  const stored = localStorage.getItem('unity_pname');
+  if(stored && stored !== 'Player') return stored;
+  // Ask user for name if we have nothing
+  const asked = localStorage.getItem('unity_pname_asked');
+  if(!asked){
+    localStorage.setItem('unity_pname_asked','1');
+    const name = prompt('Enter your Telegram username for the leaderboard:','');
+    if(name && name.trim()){
+      const clean = name.trim().replace(/^@/,'');
+      localStorage.setItem('unity_pname', clean);
+      return clean;
+    }
+  }
+  return stored||'Player';
 }
 
 async function submitScore(score, wave, uCount){
