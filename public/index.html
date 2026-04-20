@@ -29,6 +29,7 @@ body{display:flex;flex-direction:column;align-items:center}
   cursor:pointer;
 }
 </style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head><body>
 <div id="wrap">
   <canvas id="bg" width="680" height="907"></canvas>
@@ -458,8 +459,16 @@ window.addEventListener('resize',updateLinksVisibility);
 /* ── Score submission to server ── */
 function getTgUser(){
   try{
-    if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initDataUnsafe){
-      return window.Telegram.WebApp.initDataUnsafe.user||null;
+    if(window.Telegram&&window.Telegram.WebApp){
+      const tg=window.Telegram.WebApp;
+      // Try initDataUnsafe first
+      if(tg.initDataUnsafe&&tg.initDataUnsafe.user) return tg.initDataUnsafe.user;
+      // Try parsing initData string manually
+      if(tg.initData){
+        const params=new URLSearchParams(tg.initData);
+        const userStr=params.get('user');
+        if(userStr) return JSON.parse(decodeURIComponent(userStr));
+      }
     }
   }catch(e){}
   return null;
@@ -467,7 +476,10 @@ function getTgUser(){
 
 function getPlayerId(){
   const u=getTgUser();
-  if(u&&u.id) return String(u.id);
+  if(u&&u.id){
+    localStorage.setItem('unity_pid', String(u.id));
+    return String(u.id);
+  }
   if(!localStorage.getItem('unity_pid')){
     localStorage.setItem('unity_pid','anon_'+Math.random().toString(36).slice(2,10));
   }
@@ -476,8 +488,13 @@ function getPlayerId(){
 
 function getPlayerName(){
   const u=getTgUser();
-  if(u) return u.username||u.first_name||'Player';
-  return 'Player';
+  if(u){
+    const name=u.username||u.first_name||'Player';
+    localStorage.setItem('unity_pname', name);
+    return name;
+  }
+  // Fall back to stored name from previous Telegram session
+  return localStorage.getItem('unity_pname')||'Player';
 }
 
 async function submitScore(score, wave, uCount){
