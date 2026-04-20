@@ -108,6 +108,21 @@ body{display:flex;flex-direction:column;align-items:center}
 
 positionGameCanvas();
 updateLinksVisibility();
+
+/* ── Ask username if not in Telegram Mini App ── */
+function askUsernameIfNeeded(){
+  const u = getTgUser();
+  if(u) return; // Telegram provides it automatically
+  const stored = localStorage.getItem('unity_pname');
+  if(stored && stored !== 'Player') return; // already have it
+  const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
+  if(name && name.trim()){
+    const clean = name.trim().replace(/^@/,'');
+    localStorage.setItem('unity_pname', clean);
+  }
+}
+askUsernameIfNeeded();
+
 if(window.Telegram&&window.Telegram.WebApp){
   window.Telegram.WebApp.expand();
   window.Telegram.WebApp.ready();
@@ -137,6 +152,21 @@ X.textBaseline='alphabetic';
 // Position canvas immediately
 positionGameCanvas();
 updateLinksVisibility();
+
+/* ── Ask username if not in Telegram Mini App ── */
+function askUsernameIfNeeded(){
+  const u = getTgUser();
+  if(u) return; // Telegram provides it automatically
+  const stored = localStorage.getItem('unity_pname');
+  if(stored && stored !== 'Player') return; // already have it
+  const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
+  if(name && name.trim()){
+    const clean = name.trim().replace(/^@/,'');
+    localStorage.setItem('unity_pname', clean);
+  }
+}
+askUsernameIfNeeded();
+
 let frame=0,mx=W/2,my=H-40,blinkT=0;
 let score=0,lives=3,wave=1,combo=1,cTimer=0,uCount=0;
 let items=[],parts=[],floats=[],spawnRate=70,lastSpawn=0,shake=0;
@@ -494,20 +524,7 @@ function getPlayerName(){
     return name;
   }
   // Fall back to stored name from previous Telegram session
-  const stored = localStorage.getItem('unity_pname');
-  if(stored && stored !== 'Player') return stored;
-  // Ask user for name if we have nothing
-  const asked = localStorage.getItem('unity_pname_asked');
-  if(!asked){
-    localStorage.setItem('unity_pname_asked','1');
-    const name = prompt('Enter your Telegram username for the leaderboard:','');
-    if(name && name.trim()){
-      const clean = name.trim().replace(/^@/,'');
-      localStorage.setItem('unity_pname', clean);
-      return clean;
-    }
-  }
-  return stored||'Player';
+  return localStorage.getItem('unity_pname')||'Player';
 }
 
 async function submitScore(score, wave, uCount){
@@ -704,6 +721,21 @@ function openInBrowser(){
   const url=window.location.href;
   positionGameCanvas();
 updateLinksVisibility();
+
+/* ── Ask username if not in Telegram Mini App ── */
+function askUsernameIfNeeded(){
+  const u = getTgUser();
+  if(u) return; // Telegram provides it automatically
+  const stored = localStorage.getItem('unity_pname');
+  if(stored && stored !== 'Player') return; // already have it
+  const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
+  if(name && name.trim()){
+    const clean = name.trim().replace(/^@/,'');
+    localStorage.setItem('unity_pname', clean);
+  }
+}
+askUsernameIfNeeded();
+
 if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.openLink(url);}
   else{window.open(url,'_blank');}
 }
