@@ -267,8 +267,6 @@ app.post('/webhook',async(req,res)=>{
       `<b>Commands</b>\n\n`+
       `/start — play the game\n`+
       `/clues — Roaring Kitty's 4 tweets\n`+
-      `/buy — how to buy $UNITY\n`+
-      `/price — price & links\n`+
       `/leaderboard — top scores\n`+
       `/status — competition status\n`+
       `/wallet 0xAddress — register to win`,
