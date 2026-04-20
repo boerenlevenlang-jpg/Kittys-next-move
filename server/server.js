@@ -211,15 +211,18 @@ app.post('/webhook',async(req,res)=>{
       ]}}
     );
   }
-  else if(text==='/leaderboard'){
+  else if(text==='/leaderboard'||text==='/status'){
+    ensureComp(period);
     const board=getBoard(period);
+    const dl=daysLeft(period);
     const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
-    let r=`📡 <b>Leaderboard — ${period}</b>\n⏳ ${daysLeft(period)} days | 💎 ${PRIZE} $UNITY\n\n`;
+    let r=`📡 <b>Leaderboard — ${period}</b>\n`;
+    r+=`⏳ ${dl} days left | 👥 ${board.length} players | 💎 ${PRIZE} $UNITY\n\n`;
     if(!board.length) r+=`No players yet. Be first.\n`;
     else board.slice(0,10).forEach((row,i)=>{
       r+=`${medals[i]} @${row.playerName} — ${Number(row.score).toLocaleString()}${row.walletAddr?'':' ⚠️'}\n`;
     });
-    r+=`\n⚠️ = no wallet registered\n/wallet 0xAddress to register`;
+    r+=`\n⚠️ = no wallet — use /wallet 0xAddress to register`;
     await send(r,{reply_markup:mainKeyboard()});
   }
   else if(text.startsWith('/wallet')){
@@ -239,36 +242,12 @@ app.post('/webhook',async(req,res)=>{
       {reply_markup:{inline_keyboard:[[{text:'🎮 Play Now',web_app:{url:MINI_APP_URL}}]]}}
     );
   }
-  else if(text==='/status'){
-    ensureComp(period);
-    const board=getBoard(period);
-    let r=`⏳ <b>${daysLeft(period)} days left</b>\n`;
-    r+=`👥 ${board.length} players\n`;
-    r+=`💎 ${PRIZE} $UNITY\n\n`;
-    if(board[0]) r+=`👑 @${board[0].playerName} — ${Number(board[0].score).toLocaleString()}\n\n`;
-    r+=`<code>${CA}</code>`;
-    await send(r,{reply_markup:mainKeyboard()});
-  }
-  else if(text==='/price'){
-    await send(
-      `💰 <b>$UNITY Price & Links</b>\n\n`+
-      `📈 Chart: DexTools\n`+
-      `💱 Buy: Uniswap\n`+
-      `🌐 Website: unityoneth.com\n\n`+
-      `📌 CA: <code>${CA}</code>`,
-      {reply_markup:{inline_keyboard:[
-        [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 DexTools',url:DEX_URL}],
-        [{text:'🌐 unityoneth.com',url:WEBSITE_URL}]
-      ]}}
-    );
-  }
   else if(text==='/help'){
     await send(
       `<b>Commands</b>\n\n`+
       `/start — play the game\n`+
-      `/clues — Roaring Kitty's 4 tweets\n`+
-      `/leaderboard — top scores\n`+
-      `/status — competition status\n`+
+      `/clues — Roaring Kitty's 4 clues\n`+
+      `/leaderboard — scores, standings & time left\n`+
       `/wallet 0xAddress — register to win`,
       {reply_markup:mainKeyboard()}
     );
