@@ -52,13 +52,13 @@ async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 
 function mainKeyboard(){
   return {inline_keyboard:[
-    [{text:'ð® PLAY IN TELEGRAM â WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}],
-    [{text:'ð¥ï¸ Open Full Game in Browser â',url:MINI_APP_URL}],
-    [{text:'ð± Buy $UNITY',url:UNISWAP_URL},{text:'ð Chart',url:DEX_URL}]
+    [{text:'🎮 PLAY IN TELEGRAM — WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}],
+    [{text:'🖥️ Open Full Game in Browser →',url:MINI_APP_URL}],
+    [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 Chart',url:DEX_URL}]
   ]};
 }
 
-/* ââ API routes ââ */
+/* ── API routes ── */
 app.post('/api/score',async(req,res)=>{
   const{playerId,playerName,score,wave,uCount}=req.body;
   if(!playerId||!playerName||typeof score!=='number')return res.status(400).json({error:'Invalid'});
@@ -73,12 +73,12 @@ app.post('/api/score',async(req,res)=>{
   const board=getBoard(period);
   const rank=board.findIndex(r=>r.playerId===playerId)+1;
   if(isNewHigh&&rank===1&&score>0){
-    const top3=board.slice(0,3).map((r,i)=>`${'ð¥ð¥ð¥'[i]} @${r.playerName} â ${Number(r.score).toLocaleString()}`).join('\n');
+    const top3=board.slice(0,3).map((r,i)=>`${'🥇🥈🥉'[i]} @${r.playerName} — ${Number(r.score).toLocaleString()}`).join('\n');
     await tgChannel(
-      `ð <b>New #1!</b>\n\n`+
+      `🏆 <b>New #1!</b>\n\n`+
       `@${playerName} leads with <b>${score.toLocaleString()} $UNITY</b>\n\n`+
       `${top3}\n\n`+
-      `â³ ${daysLeft(period)} days left â ð ${PRIZE} $UNITY prize`,
+      `⏳ ${daysLeft(period)} days left — 💎 ${PRIZE} $UNITY prize`,
       {reply_markup:mainKeyboard()}
     );
   }
@@ -101,7 +101,7 @@ app.get('/api/leaderboard',(req,res)=>{
 });
 app.get('/health',(req,res)=>res.json({status:'ok',period:currentPeriod(),daysLeft:daysLeft(currentPeriod())}));
 
-/* ââ Admin ââ */
+/* ── Admin ── */
 function adminAuth(req,res,next){
   if(req.headers['x-admin-secret']!==ADMIN_SECRET)return res.status(401).json({error:'Unauthorized'});
   next();
@@ -117,9 +117,9 @@ app.post('/admin/mark-paid',adminAuth,async(req,res)=>{
   const winner=getBoard(period)[0];
   if(winner){
     await tgChannel(
-      `ð¸ <b>Prize sent!</b>\n\n`+
-      `ð @${winner.playerName} wins ${PRIZE} $UNITY\n`+
-      `ð <a href="https://etherscan.io/tx/${txHash}">Etherscan</a>\n\n`+
+      `💸 <b>Prize sent!</b>\n\n`+
+      `👑 @${winner.playerName} wins ${PRIZE} $UNITY\n`+
+      `🔗 <a href="https://etherscan.io/tx/${txHash}">Etherscan</a>\n\n`+
       `New round starts now. Don't sleep on Roaring Kitty again.`,
       {reply_markup:mainKeyboard()}
     );
@@ -129,10 +129,10 @@ app.post('/admin/mark-paid',adminAuth,async(req,res)=>{
 app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
   const period=currentPeriod();
   const board=getBoard(period);
-  const medals=['ð¥','ð¥','ð¥'];
-  let msg=`ð¡ <b>${daysLeft(period)} days left</b> â ${PRIZE} $UNITY prize\n\n`;
+  const medals=['🥇','🥈','🥉'];
+  let msg=`📡 <b>${daysLeft(period)} days left</b> — ${PRIZE} $UNITY prize\n\n`;
   if(board.length){
-    board.slice(0,3).forEach((r,i)=>{ msg+=`${medals[i]} @${r.playerName} â ${Number(r.score).toLocaleString()}\n`; });
+    board.slice(0,3).forEach((r,i)=>{ msg+=`${medals[i]} @${r.playerName} — ${Number(r.score).toLocaleString()}\n`; });
   }else{
     msg+=`No players yet. Be first.\n`;
   }
@@ -141,7 +141,7 @@ app.post('/admin/daily-reminder',adminAuth,async(req,res)=>{
   res.json({success:true});
 });
 
-/* ââ Bot webhook ââ */
+/* ── Bot webhook ── */
 app.post('/webhook',async(req,res)=>{
   res.sendStatus(200);
 
@@ -152,10 +152,10 @@ app.post('/webhook',async(req,res)=>{
     for(const m of newMembers){
       if(m.is_bot)continue;
       await tgSend(chatId,
-        `ð Welcome ${m.first_name||''}!\n\n`+
+        `👋 Welcome ${m.first_name||''}!\n\n`+
         `Roaring Kitty's 4 tweets all point to Unity Software ($U).\n`+
         `$UNITY is the ETH meme token riding that signal.\n\n`+
-        `ð® Play. Win ${PRIZE} $UNITY.\n`+
+        `🎮 Play. Win ${PRIZE} $UNITY.\n`+
         `<code>${CA}</code>`,
         {reply_markup:mainKeyboard()}
       );
@@ -171,26 +171,26 @@ app.post('/webhook',async(req,res)=>{
 
   if(text==='/start'){
     await send(
-      `ð± <b>Play Kitty's Next Move</b>\n\n`+
+      `🐱 <b>Play Kitty's Next Move</b>\n\n`+
       `Roaring Kitty called GME at $4. Made $250M+.\n`+
       `His last 4 tweets all signal Unity Software ($U).\n`+
       `$UNITY is the ETH meme token built on that signal.\n\n`+
       `The $GME meme token hit $160M.\n`+
-      `$UNITY is next â the world just doesn't know it yet.\n\n`+
-      `ð Play & win ${PRIZE} $UNITY this month.\n`+
-      `â³ ${daysLeft(period)} days left.\n\n`+
+      `$UNITY is next — the world just doesn't know it yet.\n\n`+
+      `🏆 Play & win ${PRIZE} $UNITY this month.\n`+
+      `⏳ ${daysLeft(period)} days left.\n\n`+
       `Don't sleep on Roaring Kitty again.`,
       {reply_markup:mainKeyboard()}
     );
   }
   else if(text==='/clues'){
     await send(
-      `ð <b>The 4 Roaring Kitty Clues</b>\n\n`+
+      `🔍 <b>The 4 Roaring Kitty Clues</b>\n\n`+
       `From Roaring Kitty\n\n`+
-      `ð Gift box â matches Unity Engine cube logo\n`+
-      `ðº TIME cover â "YOU" â "U" ($U ticker)\n`+
-      `â Rick James: "UNITY!"\n`+
-      `ð Futurama dog â "I Will Wait for U"\n\n`+
+      `🎁 Gift box → matches Unity Engine cube logo\n`+
+      `📺 TIME cover → "YOU" → "U" ($U ticker)\n`+
+      `✊ Rick James: "UNITY!"\n`+
+      `🐕 Futurama dog → "I Will Wait for U"\n\n`+
       `Four posts.\n`+
       `Same direction.\n\n`+
       `Not hidden. Just ignored.\n\n`+
@@ -200,26 +200,26 @@ app.post('/webhook',async(req,res)=>{
   }
   else if(text==='/buy'){
     await send(
-      `ð± <b>Buy $UNITY</b>\n\n`+
+      `💱 <b>Buy $UNITY</b>\n\n`+
       `1. Open Uniswap\n`+
       `2. Paste CA: <code>${CA}</code>\n`+
-      `3. Swap ETH â $UNITY\n\n`+
-      `Set slippage 3â5% if needed.`,
+      `3. Swap ETH → $UNITY\n\n`+
+      `Set slippage 3–5% if needed.`,
       {reply_markup:{inline_keyboard:[
-        [{text:'ð± Uniswap',url:UNISWAP_URL},{text:'ð Chart',url:DEX_URL}],
-        [{text:'ð Website',url:WEBSITE_URL}]
+        [{text:'💱 Uniswap',url:UNISWAP_URL},{text:'📈 Chart',url:DEX_URL}],
+        [{text:'🌐 Website',url:WEBSITE_URL}]
       ]}}
     );
   }
   else if(text==='/leaderboard'){
     const board=getBoard(period);
-    const medals=['ð¥','ð¥','ð¥','4ï¸â£','5ï¸â£','6ï¸â£','7ï¸â£','8ï¸â£','9ï¸â£','ð'];
-    let r=`ð¡ <b>Leaderboard â ${period}</b>\nâ³ ${daysLeft(period)} days | ð ${PRIZE} $UNITY\n\n`;
+    const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+    let r=`📡 <b>Leaderboard — ${period}</b>\n⏳ ${daysLeft(period)} days | 💎 ${PRIZE} $UNITY\n\n`;
     if(!board.length) r+=`No players yet. Be first.\n`;
     else board.slice(0,10).forEach((row,i)=>{
-      r+=`${medals[i]} @${row.playerName} â ${Number(row.score).toLocaleString()}${row.walletAddr?'':' â ï¸'}\n`;
+      r+=`${medals[i]} @${row.playerName} — ${Number(row.score).toLocaleString()}${row.walletAddr?'':' ⚠️'}\n`;
     });
-    r+=`\nâ ï¸ = no wallet registered\n/wallet 0xAddress to register`;
+    r+=`\n⚠️ = no wallet registered\n/wallet 0xAddress to register`;
     await send(r,{reply_markup:mainKeyboard()});
   }
   else if(text.startsWith('/wallet')){
@@ -227,51 +227,51 @@ app.post('/webhook',async(req,res)=>{
     if(!addr){
       const w=DB.wallets[userId];
       return send(w?.walletAddr
-        ?`ð³ Wallet registered:\n<code>${w.walletAddr}</code>\n\nUpdate: /wallet 0xNew`
-        :`ð³ Register to claim your prize:\n/wallet 0xYourAddress`
+        ?`💳 Wallet registered:\n<code>${w.walletAddr}</code>\n\nUpdate: /wallet 0xNew`
+        :`💳 Register to claim your prize:\n/wallet 0xYourAddress`
       );
     }
-    if(!/^0x[a-fA-F0-9]{40}$/.test(addr))return send(`â Invalid address. Try:\n/wallet 0xYourAddress`);
+    if(!/^0x[a-fA-F0-9]{40}$/.test(addr))return send(`❌ Invalid address. Try:\n/wallet 0xYourAddress`);
     DB.wallets[userId]={playerId:userId,playerName:userName,walletAddr:addr};
     if(DB.scores[period]?.[userId])DB.scores[period][userId].walletAddr=addr;
     await send(
-      `â Wallet registered!\n<code>${addr}</code>\n\nWin #1 this month â receive ${PRIZE} $UNITY on ETH Mainnet.`,
-      {reply_markup:{inline_keyboard:[[{text:'ð® Play Now',web_app:{url:MINI_APP_URL}}]]}}
+      `✅ Wallet registered!\n<code>${addr}</code>\n\nWin #1 this month → receive ${PRIZE} $UNITY on ETH Mainnet.`,
+      {reply_markup:{inline_keyboard:[[{text:'🎮 Play Now',web_app:{url:MINI_APP_URL}}]]}}
     );
   }
   else if(text==='/status'){
     ensureComp(period);
     const board=getBoard(period);
-    let r=`â³ <b>${daysLeft(period)} days left</b>\n`;
-    r+=`ð¥ ${board.length} players\n`;
-    r+=`ð ${PRIZE} $UNITY\n\n`;
-    if(board[0]) r+=`ð @${board[0].playerName} â ${Number(board[0].score).toLocaleString()}\n\n`;
+    let r=`⏳ <b>${daysLeft(period)} days left</b>\n`;
+    r+=`👥 ${board.length} players\n`;
+    r+=`💎 ${PRIZE} $UNITY\n\n`;
+    if(board[0]) r+=`👑 @${board[0].playerName} — ${Number(board[0].score).toLocaleString()}\n\n`;
     r+=`<code>${CA}</code>`;
     await send(r,{reply_markup:mainKeyboard()});
   }
   else if(text==='/price'){
     await send(
-      `ð° <b>$UNITY Price & Links</b>\n\n`+
-      `ð Chart: DexTools\n`+
-      `ð± Buy: Uniswap\n`+
-      `ð Website: unityoneth.com\n\n`+
-      `ð CA: <code>${CA}</code>`,
+      `💰 <b>$UNITY Price & Links</b>\n\n`+
+      `📈 Chart: DexTools\n`+
+      `💱 Buy: Uniswap\n`+
+      `🌐 Website: unityoneth.com\n\n`+
+      `📌 CA: <code>${CA}</code>`,
       {reply_markup:{inline_keyboard:[
-        [{text:'ð± Buy $UNITY',url:UNISWAP_URL},{text:'ð DexTools',url:DEX_URL}],
-        [{text:'ð unityoneth.com',url:WEBSITE_URL}]
+        [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 DexTools',url:DEX_URL}],
+        [{text:'🌐 unityoneth.com',url:WEBSITE_URL}]
       ]}}
     );
   }
   else if(text==='/help'){
     await send(
       `<b>Commands</b>\n\n`+
-      `/start â play the game\n`+
-      `/clues â Roaring Kitty's 4 tweets\n`+
-      `/buy â how to buy $UNITY\n`+
-      `/price â price & links\n`+
-      `/leaderboard â top scores\n`+
-      `/status â competition status\n`+
-      `/wallet 0xAddress â register to win`,
+      `/start — play the game\n`+
+      `/clues — Roaring Kitty's 4 tweets\n`+
+      `/buy — how to buy $UNITY\n`+
+      `/price — price & links\n`+
+      `/leaderboard — top scores\n`+
+      `/status — competition status\n`+
+      `/wallet 0xAddress — register to win`,
       {reply_markup:mainKeyboard()}
     );
   }
@@ -279,6 +279,6 @@ app.post('/webhook',async(req,res)=>{
 
 ensureComp(currentPeriod());
 app.listen(PORT,'0.0.0.0',()=>{
-  console.log(`\nð® Kitty's Next Move on port ${PORT}`);
-  console.log(`ð ${currentPeriod()} | â³ ${daysLeft(currentPeriod())} days | ð ${PRIZE}\n`);
+  console.log(`\n🎮 Kitty's Next Move on port ${PORT}`);
+  console.log(`📅 ${currentPeriod()} | ⏳ ${daysLeft(currentPeriod())} days | 💎 ${PRIZE}\n`);
 });
