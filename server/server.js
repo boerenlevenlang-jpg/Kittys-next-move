@@ -41,7 +41,7 @@ async function tgSend(chatId,text,extra={}){
   if(!BOT_TOKEN){console.log('[TG]',text.slice(0,80));return;}
   try{
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json; charset=utf-8'},
       body:JSON.stringify({chat_id:chatId,text,parse_mode:'HTML',disable_web_page_preview:true,...extra})
     });
     const d=await r.json();
