@@ -40,15 +40,12 @@ function getBoard(period){
 async function tgSend(chatId,text,extra={}){
   if(!BOT_TOKEN){console.log('[TG]',text.slice(0,80));return;}
   try{
-    const body=JSON.stringify({chat_id:chatId,text,parse_mode:'HTML',disable_web_page_preview:true,...extra});
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
-      method:'POST',headers:{'Content-Type':'application/json; charset=utf-8'},
-      body
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text,parse_mode:'HTML',disable_web_page_preview:true,...extra})
     });
     const d=await r.json();
-    if(!d.ok){
-      console.error('[TG error]',d.description,'| chatId:',chatId,'| text preview:',text.slice(0,60));
-    }
+    if(!d.ok)console.error('[TG error]',d.description,'chatId:',chatId);
   }catch(e){console.error('[TG]',e.message);}
 }
 async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
