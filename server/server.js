@@ -52,15 +52,15 @@ async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 
 function mainKeyboard(chatId){
   // web_app buttons only work in private chats (positive chat IDs)
-  // Groups have negative chat IDs
-  const isPrivate = !chatId || Number(chatId) > 0;
+  // Groups and channels have negative chat IDs
+  const isPrivate = chatId && Number(chatId) > 0;
   const playBtn = isPrivate
-    ? {text:'🎮 PLAY IN TELEGRAM — WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}
-    : {text:'🎮 PLAY — WIN 1 TRILLION $UNITY',url:MINI_APP_URL};
+    ? {text:'PLAY IN TELEGRAM - WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}
+    : {text:'PLAY - WIN 1 TRILLION $UNITY',url:MINI_APP_URL};
   return {inline_keyboard:[
     [playBtn],
-    [{text:'🖥️ Open in Browser',url:MINI_APP_URL}],
-    [{text:'💱 Buy $UNITY',url:UNISWAP_URL},{text:'📈 Chart',url:DEX_URL}]
+    [{text:'Open in Browser',url:MINI_APP_URL}],
+    [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
   ]};
 }
 
