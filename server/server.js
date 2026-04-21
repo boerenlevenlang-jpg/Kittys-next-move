@@ -79,12 +79,13 @@ app.post('/api/score',async(req,res)=>{
   const board=getBoard(period);
   const rank=board.findIndex(r=>r.playerId===playerId)+1;
   if(isNewHigh&&rank===1&&score>0){
-    const top3=board.slice(0,3).map((r,i)=>`${'🥇🥈🥉'[i]} @${r.playerName} — ${Number(r.score).toLocaleString()}`).join('\n');
+    const medals=['#1','#2','#3'];
+    const top3=board.slice(0,3).map((r,i)=>`${medals[i]} @${r.playerName} - ${Number(r.score).toLocaleString()}`).join('\n');
     await tgChannel(
-      `🏆 <b>New #1!</b>\n\n`+
+      `<b>New #1!</b>\n\n`+
       `@${playerName} leads with <b>${score.toLocaleString()} $UNITY</b>\n\n`+
       `${top3}\n\n`+
-      `⏳ ${daysLeft(period)} days left — 💎 ${PRIZE} $UNITY prize`,
+      `${daysLeft(period)} days left - ${PRIZE} $UNITY prize`,
       {reply_markup:mainKeyboard(null)}
     );
   }
