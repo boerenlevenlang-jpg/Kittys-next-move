@@ -173,7 +173,7 @@ askUsernameIfNeeded();
 
 let frame=0,mx=W/2,my=H-40,blinkT=0;
 let score=0,lives=3,wave=1,combo=1,cTimer=0,uCount=0;
-let items=[],parts=[],floats=[],spawnRate=70,lastSpawn=0,shake=0;
+let items=[],parts=[],floats=[],spawnRate=55,lastSpawn=0,shake=0;
 function rnd(a,b){return a+Math.random()*(b-a)}
 
 const ITYPES=[
@@ -188,7 +188,7 @@ function spawn(){
   let roll=Math.random()*tot,cum=0,t;
   for(let i of ITYPES){cum+=i.w;if(roll<cum){t=i;break;}}
   if(!t)t=ITYPES[0];
-  items.push({x:rnd(t.r+8,W-t.r-8),y:-t.r-5,vx:rnd(-.3,.3),vy:rnd(1.1+wave*.14,1.8+wave*.18),r:t.r,t:{...t},ang:0,sp:rnd(-.02,.02),wb:rnd(0,6),alive:true});
+  items.push({x:rnd(t.r+8,W-t.r-8),y:-t.r-5,vx:rnd(-.3,.3),vy:rnd(1.5+wave*.14,2.2+wave*.18),r:t.r,t:{...t},ang:0,sp:rnd(-.02,.02),wb:rnd(0,6),alive:true});
 }
 
 function drawCube(cx,cy,s){
@@ -659,9 +659,14 @@ function startGame(){
   if(go)go.remove();
   loop();
 }
-function loop(){
+let _lastTime=0;
+function loop(timestamp){
   if(!cutsceneDone){drawCutscene();requestAnimationFrame(loop);return;}
-  if(!gameStarted||gameOver){return;} /* wait for play button */
+  if(!gameStarted||gameOver){return;}
+  // Cap to 60fps so game speed is consistent across all devices
+  const _delta=timestamp-_lastTime;
+  if(_delta<16){requestAnimationFrame(loop);return;} // locked 60fps all devices
+  _lastTime=timestamp;
   frame++;blinkT++;
   if(cTimer>0){cTimer--;if(cTimer===0)combo=1;}
   if(frame%600===0){wave++;spawnRate=Math.max(35,spawnRate-8);}
