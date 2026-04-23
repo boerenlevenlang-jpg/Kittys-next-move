@@ -188,7 +188,7 @@ function spawn(){
   let roll=Math.random()*tot,cum=0,t;
   for(let i of ITYPES){cum+=i.w;if(roll<cum){t=i;break;}}
   if(!t)t=ITYPES[0];
-  items.push({x:rnd(t.r+8,W-t.r-8),y:-t.r-5,vx:rnd(-.3,.3),vy:rnd(1.5+wave*.14,2.2+wave*.18),r:t.r,t:{...t},ang:0,sp:rnd(-.02,.02),wb:rnd(0,6),alive:true});
+  items.push({x:rnd(t.r+8,W-t.r-8),y:-t.r-5,vx:rnd(-.3,.3),vy:rnd(1.8+wave*.15,2.0+wave*.15),r:t.r,t:{...t},ang:0,sp:rnd(-.02,.02),wb:rnd(0,6),alive:true});
 }
 
 function drawCube(cx,cy,s){
@@ -659,14 +659,17 @@ function startGame(){
   if(go)go.remove();
   loop();
 }
-let _lastTime=0;
+let _lastTime=0,_accum=0;
+const STEP=1000/60; // fixed 60fps physics step
 function loop(timestamp){
   if(!cutsceneDone){drawCutscene();requestAnimationFrame(loop);return;}
   if(!gameStarted||gameOver){return;}
-  // Cap to 60fps so game speed is consistent across all devices
-  const _delta=timestamp-_lastTime;
-  if(_delta<16){requestAnimationFrame(loop);return;} // locked 60fps all devices
+  const _delta=Math.min(timestamp-_lastTime,50); // cap at 50ms to avoid spiral
   _lastTime=timestamp;
+  _accum+=_delta;
+  // Only run game logic when enough time has accumulated for a full step
+  if(_accum<STEP){requestAnimationFrame(loop);return;}
+  _accum-=STEP;
   frame++;blinkT++;
   if(cTimer>0){cTimer--;if(cTimer===0)combo=1;}
   if(frame%600===0){wave++;spawnRate=Math.max(35,spawnRate-8);}
