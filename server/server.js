@@ -282,6 +282,14 @@ app.post('/webhook',async(req,res)=>{
 
 /* ── Buy Bot ── */
 const UNITY_CA_LOWER = '0xfd0bb211d479710dfa01d3d98751767f51edb2d9';
+// Known Uniswap pools/routers - transfers FROM these = buys
+const UNISWAP_POOLS = new Set([
+  '0xc85589c893c9a4cc7ea0b193095712aca1b8441c', // UNITY/WETH pair
+  '0x7a250d5630b4cf539739df2c5dacb4c659f2488d', // Uniswap V2 Router
+  '0xe592427a0aece92de3edee1f18e0157c05861564', // Uniswap V3 Router
+  '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45', // Uniswap V3 Router 2
+  '0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b', // Uniswap Universal Router
+]);
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 let lastBuyBlock = 0;
 const postedTxs = new Set(); // track posted transactions
@@ -367,6 +375,12 @@ async function checkBuys(){
     // Group by txHash - show only largest transfer per transaction
     const txMap = {};
     for(const log of logsData.result){
+      const fromAddr = ('0x'+log.topics[1].slice(26)).toLowerCase();
+      const toAddr = ('0x'+log.topics[2].slice(26)).toLowerCase();
+      // Only process buys: transfer FROM a known Uniswap pool TO a wallet
+      if(!UNISWAP_POOLS.has(fromAddr)) continue;
+      // Skip if to address is also a pool (internal transfers)
+      if(UNISWAP_POOLS.has(toAddr)) continue;
       const rawHex = log.data.startsWith('0x')?log.data:'0x'+log.data;
       const amt = Number(BigInt(rawHex))/1e9;
       if(!txMap[log.transactionHash]||amt>txMap[log.transactionHash].amount)
