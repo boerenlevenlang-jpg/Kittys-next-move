@@ -53,18 +53,18 @@ async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 async function tgChannelVideo(fileId,caption,entities,extra={}){
   if(!BOT_TOKEN){console.log('[TG video]',caption.slice(0,80));return;}
   try{
-    const payload={chat_id:CHANNEL_ID,animation:fileId,caption,...extra};
+    const payload={chat_id:CHANNEL_ID,video:fileId,caption,supports_streaming:true,...extra};
     if(entities&&entities.length){
       payload.caption_entities=entities;
     } else {
       payload.parse_mode='HTML';
     }
-    const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAnimation`,{
+    const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
     const d=await r.json();
-    if(!d.ok)console.error('[TG animation error]',d.description);
+    if(!d.ok)console.error('[TG video error]',d.description);
   }catch(e){console.error('[TG animation]',e.message);}
 }
 
@@ -310,8 +310,12 @@ async function checkBuys(){
     if(!logsData.result||!logsData.result.length)return;
     for(const log of logsData.result){
       const to = '0x'+log.topics[2].slice(26);
-      const amount = parseInt(log.data,16)/1e18;
-      if(amount<1)continue;
+      let amount;
+      try{
+        const rawHex = log.data.startsWith('0x') ? log.data : '0x'+log.data;
+        amount = Number(BigInt(rawHex)) / 1e18;
+      }catch(e){ amount = parseInt(log.data,16)/1e18; }
+      if(amount<1000000)continue; // min 1M tokens to filter dust
       const shortWallet = to.slice(0,6)+'...'+to.slice(-4);
       const shortAmount = amount>=1e9?(amount/1e9).toFixed(1)+'B':
                           amount>=1e6?(amount/1e6).toFixed(1)+'M':
@@ -336,7 +340,7 @@ async function checkBuys(){
         `Roaring Kitty's last 4 posts all point to UNITY.`;
 
       await tgChannelVideo(
-        'BQACAgUAAxkBAAIBUWnrcEYbWvDwORmLM06XW6SAUrIjAAIkHwACM2VgV_M-lxxXlO7WOwQ',
+        'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
         caption,
         null,
         {reply_markup:{inline_keyboard:[
