@@ -313,15 +313,23 @@ async function getUnityPrice(rpc){
 
 async function getWalletBalance(rpc, wallet){
   try{
+    // balanceOf(address) selector = 0x70a08231
+    // pad address to 32 bytes (remove 0x, lowercase, pad left with zeros)
+    const addr = wallet.toLowerCase().replace('0x','').padStart(64,'0');
+    const data = '0x70a08231' + addr;
     const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:4,params:[{
         to:UNITY_CA_LOWER,
-        data:'0x70a08231000000000000000000000000'+wallet.slice(2)
+        data:data
       },'latest']})});
     const d = await r.json();
-    if(!d.result||d.result==='0x') return 0;
-    return Number(BigInt(d.result)) / 1e9;
-  }catch(e){ return 0; }
+    if(!d.result||d.result==='0x'||d.result==='0x0') return 0;
+    // Result is a 32-byte hex - parse as BigInt then divide by 10^9
+    const raw = d.result.length > 2 ? BigInt(d.result) : 0n;
+    const balance = Number(raw) / 1e9;
+    console.log('[walletBal] wallet:', wallet.slice(0,10), 'raw:', d.result.slice(0,20), 'balance:', balance);
+    return balance;
+  }catch(e){ console.error('[walletBal error]',e.message); return 0; }
 }
 
 async function getTotalSupply(rpc){
