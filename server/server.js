@@ -313,22 +313,22 @@ async function getUnityPrice(rpc){
 
 async function getWalletBalance(rpc, wallet){
   try{
-    // balanceOf(address) selector = 0x70a08231
-    // pad address to 32 bytes (remove 0x, lowercase, pad left with zeros)
-    const addr = wallet.toLowerCase().replace('0x','').padStart(64,'0');
-    const data = '0x70a08231' + addr;
-    const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:4,params:[{
-        to:UNITY_CA_LOWER,
-        data:data
-      },'latest']})});
+    // Use Alchemy getTokenBalances endpoint
+    const alchemyBase = rpc.replace('/v2/', '/v2/');
+    const r = await fetch(alchemyBase,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        jsonrpc:'2.0',id:4,
+        method:'alchemy_getTokenBalances',
+        params:[wallet, [UNITY_CA_LOWER]]
+      })
+    });
     const d = await r.json();
-    if(!d.result||d.result==='0x'||d.result==='0x0') return 0;
-    // Result is a 32-byte hex - parse as BigInt then divide by 10^9
-    const raw = d.result.length > 2 ? BigInt(d.result) : 0n;
-    const balance = Number(raw) / 1e9;
-    console.log('[walletBal] wallet:', wallet.slice(0,10), 'raw:', d.result.slice(0,20), 'balance:', balance);
-    return balance;
+    console.log('[walletBal alchemy]', JSON.stringify(d?.result?.tokenBalances?.[0]));
+    const hexBal = d?.result?.tokenBalances?.[0]?.tokenBalance;
+    if(!hexBal||hexBal==='0x0') return 0;
+    return Number(BigInt(hexBal)) / 1e9;
   }catch(e){ console.error('[walletBal error]',e.message); return 0; }
 }
 
@@ -392,13 +392,22 @@ async function checkBuys(){
 
     for(const {log} of Object.values(txMap)){
       const to = '0x'+log.topics[2].slice(26);
+      // Get actual buyer from transaction (tx.from = real buyer wallet)
+      let actualBuyer = to;
+      try{
+        const txR = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({jsonrpc:'2.0',method:'eth_getTransactionByHash',id:6,
+            params:[log.transactionHash]})});
+        const txD = await txR.json();
+        if(txD?.result?.from){ actualBuyer = txD.result.from; shortWallet = actualBuyer.slice(0,6)+'...'+actualBuyer.slice(-4); }
+      }catch(e){}
       let amount;
       try{
         const rawHex = log.data.startsWith('0x') ? log.data : '0x'+log.data;
         amount = Number(BigInt(rawHex)) / 1e9;
       }catch(e){ amount = parseInt(log.data,16)/1e9; } // UNITY 9 decimals
       if(amount<1000000)continue; // min 1M tokens
-      const shortWallet = to.slice(0,6)+'...'+to.slice(-4);
+      let shortWallet = to.slice(0,6)+'...'+to.slice(-4);
       const shortAmount = amount>=1e9?(amount/1e9).toFixed(1)+'B':
                           amount>=1e6?(amount/1e6).toFixed(1)+'M':
                           amount>=1e3?(amount/1e3).toFixed(1)+'K':amount.toFixed(0);
@@ -419,7 +428,7 @@ async function checkBuys(){
       // Fetch extra data
       const [ethPrice, walletBal, totalSupply] = await Promise.all([
         getEthPrice(),
-        getWalletBalance(rpc, to),
+        getWalletBalance(rpc, actualBuyer),
         getTotalSupply(rpc)
       ]);
 
@@ -447,7 +456,7 @@ async function checkBuys(){
         `${emojiStr}\n`+
         `<b>${titleStr}</b>\n\n`+
         `🔀 <b>Got ${formatAmount(amount)} UNITY</b> (<b>$${usdValue.toFixed(2)}</b>)\n`+
-        `👤 <b><a href="https://etherscan.io/address/${to}">${buyerStr}</a></b> / <b><a href="https://etherscan.io/tx/${log.transactionHash}">${txStr}</a></b>\n`+
+        `👤 <b><a href="https://etherscan.io/address/${actualBuyer}">${buyerStr}</a></b> / <b><a href="https://etherscan.io/tx/${log.transactionHash}">${txStr}</a></b>\n`+
         `🪙 <b>Holding ${walletBal>0?formatAmount(walletBal)+' UNITY':'N/A'}</b>\n`+
         `💸 <b>Market Cap $${marketCap>0?formatAmount(marketCap):'~$67K'}</b>\n\n`+
         `<b>Roaring Kitty's last 4 posts all point to UNITY.</b>`;
