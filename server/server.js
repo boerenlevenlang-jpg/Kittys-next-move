@@ -358,10 +358,28 @@ const UNITY_CA = '0xFd0bb211d479710dFa01d3d98751767F51edb2d9'.toLowerCase();
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 let lastBuyBlock = 0;
 
+let _priceCache = {ethPrice:0, unityPriceUsd:0, marketCap:0, lastFetch:0};
+
 async function checkBuys(){
   if(!ALCHEMY_KEY) return;
   try{
     const rpc = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`;
+    
+    // Cache price data for 60 seconds
+    const now = Date.now();
+    if(now - _priceCache.lastFetch > 60000){
+      const [ethPriceRes, dexRes] = await Promise.all([
+        getEthPrice(),
+        fetch('https://api.dexscreener.com/latest/dex/tokens/0xfd0bb211d479710dfa01d3d98751767f51edb2d9').then(r=>r.json()).catch(()=>({}))
+      ]);
+      _priceCache.ethPrice = ethPriceRes;
+      const pair = dexRes?.pairs?.[0];
+      if(pair){
+        _priceCache.unityPriceUsd = parseFloat(pair.priceUsd||0);
+        _priceCache.marketCap = parseFloat(pair.fdv||pair.marketCap||0);
+      }
+      _priceCache.lastFetch = now;
+    }
     const blockRes = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({jsonrpc:'2.0',method:'eth_blockNumber',params:[],id:1})});
     const blockData = await blockRes.json();
@@ -425,26 +443,15 @@ async function checkBuys(){
       const placeholder = '🐾';
       const emojiStr = placeholder.repeat(emojiCount);
 
-      // Fetch extra data
-      const [ethPrice, walletBal, totalSupply] = await Promise.all([
-        getEthPrice(),
+      // Fetch wallet data in parallel (prices come from cache)
+      const [walletBal, totalSupply] = await Promise.all([
         getWalletBalance(rpc, actualBuyer),
         getTotalSupply(rpc)
       ]);
 
-      // Get UNITY price from DexScreener (more reliable)
-      let unityPriceUsd = 0;
-      let marketCap = 0;
-      try{
-        const pr = await fetch('https://api.dexscreener.com/latest/dex/tokens/0xfd0bb211d479710dfa01d3d98751767f51edb2d9');
-        const pd = await pr.json();
-        const pair = pd?.pairs?.[0];
-        if(pair){
-          unityPriceUsd = parseFloat(pair.priceUsd||0);
-          marketCap = parseFloat(pair.fdv||pair.marketCap||0);
-        }
-      }catch(e){}
-
+      const ethPrice = _priceCache.ethPrice;
+      const unityPriceUsd = _priceCache.unityPriceUsd;
+      const marketCap = _priceCache.marketCap;
       const usdValue = amount * unityPriceUsd;
       console.log('[buybot] walletBal:', walletBal, 'amount:', amount, 'totalSupply:', totalSupply);
 
