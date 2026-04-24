@@ -50,12 +50,18 @@ async function tgSend(chatId,text,extra={}){
 }
 async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 
-async function tgChannelVideo(fileId,caption,extra={}){
+async function tgChannelVideo(fileId,caption,entities,extra={}){
   if(!BOT_TOKEN){console.log('[TG video]',caption.slice(0,80));return;}
   try{
+    const payload={chat_id:CHANNEL_ID,animation:fileId,caption,...extra};
+    if(entities&&entities.length){
+      payload.caption_entities=entities;
+    } else {
+      payload.parse_mode='HTML';
+    }
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAnimation`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:CHANNEL_ID,animation:fileId,caption,parse_mode:'HTML',disable_web_page_preview:true,...extra})
+      body:JSON.stringify(payload)
     });
     const d=await r.json();
     if(!d.ok)console.error('[TG animation error]',d.description);
@@ -325,21 +331,23 @@ async function checkBuys(){
       const emojis = UNITY_EMOJI.repeat(emojiCount);
 
       const msg =
-        `${emojis}\n\n`+
-        `<b>$UNITY Buy!</b>\n\n`+
-        `Spent: <b>${shortAmount} $UNITY</b>\n`+
-        `Buyer: <a href="https://etherscan.io/address/${to}">${shortWallet}</a> | `+
-        `<a href="https://etherscan.io/tx/${log.transactionHash}">TX</a>\n`+
-        `Market Cap: <a href="${DEX_URL}">View Chart</a>\n\n`+
+        `${emojis}\n`+
+        `<b>$UNITY</b>\n\n`+
+        `💰 $${(amount*0.000000001).toFixed(2)} (ETH)\n`+
+        `🪙 ${shortAmount} UNITY\n`+
+        `👤 <a href="https://etherscan.io/address/${to}">${shortWallet}</a>\n`+
+        `📊 <a href="${DEX_URL}">Chart</a> | <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a>\n\n`+
         `Roaring Kitty's last 4 posts all point to UNITY.`;
+      // Send animation first with no caption
       await tgChannelVideo(
         'BQACAgUAAxkBAAIBUWnrcEYbWvDwORmLM06XW6SAUrIjAAIkHwACM2VgV_M-lxxXlO7WOwQ',
-        msg,
-        {reply_markup:{inline_keyboard:[
-          [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
-          [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
-        ]}}
+        ''
       );
+      // Then send text message with custom emoji
+      await tgChannel(msg,{reply_markup:{inline_keyboard:[
+        [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
+        [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
+      ]}});
     }
   }catch(e){console.error('[buybot]',e.message);}
 }
