@@ -65,7 +65,7 @@ async function tgChannelVideo(fileId,caption,entities,extra={}){
     });
     const d=await r.json();
     if(!d.ok)console.error('[TG video error]',d.description);
-  }catch(e){console.error('[TG animation]',e.message);}
+  }catch(e){console.error('[TG video]',e.message);}
 }
 
 function mainKeyboard(chatId){
@@ -342,19 +342,41 @@ async function checkBuys(){
 
       // Each custom emoji placeholder is 1 char wide in the string
       // but Telegram counts UTF-16 code units for entity offsets
-      const emojiLine = '⚪'.repeat(emojiCount);
+      // Build text with custom Unity emoji using entities
+      const UNITY_EMOJI_ID = '5920401474512231167';
+      const placeholder = 'U'; // 1 char per custom emoji
+      const emojiStr = placeholder.repeat(emojiCount);
+      const titleStr = 'Unity Software Buy!';
+      const gotStr = `Got ${shortAmount} UNITY`;
+      const walletStr = shortWallet;
+      const txStr = 'TX';
+      const line3 = "Roaring Kitty's last 4 posts all point to UNITY.";
 
-      const caption =
-        `${emojiLine}\n`+
-        `<b>Unity Software Buy!</b>\n\n`+
-        `🔀 Got <b>${shortAmount} UNITY</b>\n`+
-        `👤 <a href="https://etherscan.io/address/${to}">${shortWallet}</a> | <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a>\n\n`+
-        `Roaring Kitty's last 4 posts all point to UNITY.`;
+      const caption = `${emojiStr}\n${titleStr}\n\n🔀 ${gotStr}\n👤 ${walletStr} | ${txStr}\n\n${line3}`;
+
+      // Build entities using proper UTF-16 offset calculation
+      function utf16len(s){ return s.split('').reduce((a,c)=>a+(c.codePointAt(0)>0xFFFF?2:1),0); }
+      function utf16off(full,sub){ 
+        const idx=full.indexOf(sub); 
+        return idx===-1?0:utf16len(full.slice(0,idx)); 
+      }
+
+      const entities = [];
+      // Custom emoji for each U placeholder
+      for(let i=0;i<emojiCount;i++){
+        entities.push({type:'custom_emoji',offset:i,length:1,custom_emoji_id:UNITY_EMOJI_ID});
+      }
+      // Bold title
+      entities.push({type:'bold',offset:utf16off(caption,titleStr),length:utf16len(titleStr)});
+      // Wallet link
+      entities.push({type:'text_link',offset:utf16off(caption,walletStr),length:utf16len(walletStr),url:`https://etherscan.io/address/${to}`});
+      // TX link
+      entities.push({type:'text_link',offset:utf16off(caption,txStr+' '),length:utf16len(txStr),url:`https://etherscan.io/tx/${log.transactionHash}`});
 
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
         caption,
-        null,
+        entities,
         {reply_markup:{inline_keyboard:[
           [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
           [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
