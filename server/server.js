@@ -54,11 +54,7 @@ async function tgChannelVideo(fileId,caption,entities,extra={}){
   if(!BOT_TOKEN){console.log('[TG video]',caption.slice(0,80));return;}
   try{
     const payload={chat_id:CHANNEL_ID,video:fileId,caption,supports_streaming:true,...extra};
-    if(entities&&entities.length){
-      payload.caption_entities=entities;
-    } else {
-      payload.parse_mode='HTML';
-    }
+    payload.parse_mode='HTML'; // use HTML for bold and links
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
@@ -433,6 +429,7 @@ async function checkBuys(){
       }catch(e){}
 
       const usdValue = amount * unityPriceUsd;
+      console.log('[buybot] walletBal:', walletBal, 'amount:', amount, 'totalSupply:', totalSupply);
 
       const titleStr = 'Unity Software Buy!';
       const buyerStr = 'Buyer';
@@ -440,31 +437,18 @@ async function checkBuys(){
 
       const caption =
         `${emojiStr}\n`+
-        `${titleStr}\n\n`+
-        `🔀 Got ${formatAmount(amount)} UNITY ($${usdValue.toFixed(2)})\n`+
-        `👤 ${buyerStr} / ${txStr}\n`+
-        `🪙 Holding ${formatAmount(walletBal)} UNITY\n`+
-        `💸 Market Cap $${formatAmount(marketCap)}\n\n`+
-        `Roaring Kitty's last 4 posts all point to UNITY.`;
+        `<b>${titleStr}</b>\n\n`+
+        `🔀 <b>Got ${formatAmount(amount)} UNITY</b> (<b>$${usdValue.toFixed(2)}</b>)\n`+
+        `👤 <b><a href="https://etherscan.io/address/${to}">${buyerStr}</a></b> / <b><a href="https://etherscan.io/tx/${log.transactionHash}">${txStr}</a></b>\n`+
+        `🪙 <b>Holding ${walletBal>0?formatAmount(walletBal)+' UNITY':'N/A'}</b>\n`+
+        `💸 <b>Market Cap $${marketCap>0?formatAmount(marketCap):'~$67K'}</b>\n\n`+
+        `<b>Roaring Kitty's last 4 posts all point to UNITY.</b>`;
 
-      function utf16len(s){return [...s].reduce((a,c)=>a+(c.codePointAt(0)>0xFFFF?2:1),0);}
-      function utf16off(full,sub){const idx=full.indexOf(sub);return idx===-1?-1:utf16len([...full].slice(0,idx).join(''));}
-
-      const entities = [];
-      // Bold title
-      const titleOff = utf16off(caption, titleStr);
-      if(titleOff>=0) entities.push({type:'bold',offset:titleOff,length:utf16len(titleStr)});
-      // Buyer link
-      const buyerOff = utf16off(caption, buyerStr);
-      if(buyerOff>=0) entities.push({type:'text_link',offset:buyerOff,length:utf16len(buyerStr),url:`https://etherscan.io/address/${to}`});
-      // TX link
-      const txOff = utf16off(caption, '/ '+txStr)+2;
-      if(txOff>=2) entities.push({type:'text_link',offset:txOff,length:utf16len(txStr),url:`https://etherscan.io/tx/${log.transactionHash}`});
-
+            // HTML parse_mode handles all formatting and links
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
         caption,
-        entities,
+        null,
         {reply_markup:{inline_keyboard:[
           [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
           [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
