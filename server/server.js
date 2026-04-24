@@ -59,12 +59,14 @@ async function tgChannelVideo(fileId,caption,entities,extra={}){
     } else {
       payload.parse_mode='HTML';
     }
+    console.log('[buybot] caption:', JSON.stringify(payload.caption));
+    console.log('[buybot] entities:', JSON.stringify(payload.caption_entities));
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
     const d=await r.json();
-    if(!d.ok)console.error('[TG video error]',d.description);
+    if(!d.ok)console.error('[TG video error]',d.description,JSON.stringify(payload.caption_entities));
   }catch(e){console.error('[TG video]',e.message);}
 }
 
