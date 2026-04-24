@@ -53,13 +53,13 @@ async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 async function tgChannelVideo(fileId,caption,extra={}){
   if(!BOT_TOKEN){console.log('[TG video]',caption.slice(0,80));return;}
   try{
-    const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`,{
+    const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAnimation`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:CHANNEL_ID,video:fileId,caption,parse_mode:'HTML',disable_web_page_preview:true,...extra})
+      body:JSON.stringify({chat_id:CHANNEL_ID,animation:fileId,caption,parse_mode:'HTML',disable_web_page_preview:true,...extra})
     });
     const d=await r.json();
-    if(!d.ok)console.error('[TG video error]',d.description);
-  }catch(e){console.error('[TG video]',e.message);}
+    if(!d.ok)console.error('[TG animation error]',d.description);
+  }catch(e){console.error('[TG animation]',e.message);}
 }
 
 function mainKeyboard(chatId){
@@ -333,7 +333,7 @@ async function checkBuys(){
         `Market Cap: <a href="${DEX_URL}">View Chart</a>\n\n`+
         `Roaring Kitty's last 4 posts all point to UNITY.`;
       await tgChannelVideo(
-        'AAMCBQADGQEAAgFPaetLG1p04z0MR2asjwsEyYwncIwAAhMeAAIzZWBXhfdKol_U6sEBAAdtAAM7BA',
+        'BQACAgUAAxkBAAIBUWnrcEYbWvDwORmLM06XW6SAUrIjAAIkHwACM2VgV_M-lxxXlO7WOwQ',
         msg,
         {reply_markup:{inline_keyboard:[
           [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
