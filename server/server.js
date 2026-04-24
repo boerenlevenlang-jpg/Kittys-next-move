@@ -334,17 +334,17 @@ async function checkBuys(){
                           amount>=1e3?(amount/1e3).toFixed(1)+'K':amount.toFixed(0);
 
       // Emoji scaling
-      let emojiCount = amount>=1e12?10:amount>=1e11?8:amount>=1e10?6:
+      let emojiCount = amount>=1e11?8:amount>=1e10?6:
                        amount>=1e9?5:amount>=1e8?4:amount>=1e7?3:
                        amount>=1e6?2:1;
-      if(amount>=1e12) emojiCount = 10 + Math.floor((amount-1e12)/1e11);
+      if(amount>=1e12) emojiCount = 10 + Math.floor((amount-1e12)/1e11); // +1 per 100B above 1T
       emojiCount = Math.min(emojiCount, 50);
 
       // Each custom emoji placeholder is 1 char wide in the string
       // but Telegram counts UTF-16 code units for entity offsets
       // Build text with custom Unity emoji using entities
       const UNITY_EMOJI_ID = '5920401474512231167';
-      const placeholder = 'U'; // 1 char per custom emoji
+      const placeholder = '😼'; // smirking cat = Roaring Kitty
       const emojiStr = placeholder.repeat(emojiCount);
       const titleStr = 'Unity Software Buy!';
       const gotStr = `Got ${shortAmount} UNITY`;
@@ -362,10 +362,7 @@ async function checkBuys(){
       }
 
       const entities = [];
-      // Custom emoji for each U placeholder
-      for(let i=0;i<emojiCount;i++){
-        entities.push({type:'custom_emoji',offset:i,length:1,custom_emoji_id:UNITY_EMOJI_ID});
-      }
+      // Note: custom_emoji requires Premium - using plain U placeholders
       // Bold title
       entities.push({type:'bold',offset:utf16off(caption,titleStr),length:utf16len(titleStr)});
       // Wallet link
