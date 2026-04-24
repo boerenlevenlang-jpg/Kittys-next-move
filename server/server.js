@@ -378,10 +378,7 @@ ${line3}`;
         ]}}
       );
       // Then send text message with custom emoji
-      await tgChannel(msg,{reply_markup:{inline_keyboard:[
-        [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
-        [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
-      ]}});
+
     }
   }catch(e){console.error('[buybot]',e.message);}
 }
