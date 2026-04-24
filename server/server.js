@@ -315,6 +315,7 @@ async function checkBuys(){
         const rawHex = log.data.startsWith('0x') ? log.data : '0x'+log.data;
         amount = Number(BigInt(rawHex)) / 1e18;
       }catch(e){ amount = parseInt(log.data,16)/1e18; }
+      console.log('[buybot] transfer amount:', amount, 'to:', to.slice(0,10));
       if(amount<1000000)continue; // min 1M tokens to filter dust
       const shortWallet = to.slice(0,6)+'...'+to.slice(-4);
       const shortAmount = amount>=1e9?(amount/1e9).toFixed(1)+'B':
