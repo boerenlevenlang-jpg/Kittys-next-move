@@ -377,6 +377,7 @@ async function checkBuys(){
     for(const log of logsData.result){
       const fromAddr = ('0x'+log.topics[1].slice(26)).toLowerCase();
       const toAddr = ('0x'+log.topics[2].slice(26)).toLowerCase();
+      console.log('[buybot] from:', fromAddr, 'to:', toAddr.slice(0,10));
       // Only process buys: transfer FROM a known Uniswap pool TO a wallet
       if(!UNISWAP_POOLS.has(fromAddr)) continue;
       // Skip if to address is also a pool (internal transfers)
