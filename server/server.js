@@ -308,7 +308,19 @@ async function checkBuys(){
     const logsData = await logsRes.json();
     lastBuyBlock = latestBlock;
     if(!logsData.result||!logsData.result.length)return;
+
+    // Group by txHash - only show largest transfer per transaction
+    const txMap = {};
     for(const log of logsData.result){
+      const txHash = log.transactionHash;
+      const rawHex = log.data.startsWith('0x') ? log.data : '0x'+log.data;
+      const amt = Number(BigInt(rawHex)) / 1e9;
+      if(!txMap[txHash] || amt > txMap[txHash].amount){
+        txMap[txHash] = {log, amount: amt};
+      }
+    }
+
+    for(const {log} of Object.values(txMap)){
       const to = '0x'+log.topics[2].slice(26);
       let amount;
       try{
