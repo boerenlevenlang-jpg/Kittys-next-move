@@ -409,7 +409,7 @@ async function checkBuys(){
       // Each custom emoji placeholder is 1 char wide in the string
       // but Telegram counts UTF-16 code units for entity offsets
       // Build text with custom Unity emoji using entities
-      const placeholder = '😼';
+      const placeholder = '🐾';
       const emojiStr = placeholder.repeat(emojiCount);
 
       // Fetch extra data
