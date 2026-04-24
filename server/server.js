@@ -280,206 +280,140 @@ app.post('/webhook',async(req,res)=>{
 
 
 
-/* ── Buy Bot Helpers ── */
+/* ── Buy Bot ── */
 const UNITY_CA_LOWER = '0xfd0bb211d479710dfa01d3d98751767f51edb2d9';
+const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
+let lastBuyBlock = 0;
 
-async function getEthPrice(){
-  try{
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-    const d = await r.json();
-    return d?.ethereum?.usd || 0;
-  }catch(e){ return 0; }
-}
+// Price cache - refresh every 60s
+let _cache = {ethPrice:0, unityUsd:0, marketCap:0, ts:0};
 
-async function getUnityPrice(rpc){
+async function refreshPriceCache(){
+  const now = Date.now();
+  if(now - _cache.ts < 60000) return;
   try{
-    // Get reserves from Uniswap pair to calculate price
-    const pairAddr = '0xc85589c893c9a4cc7ea0b193095712aca1b8441c';
-    const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:3,params:[{
-        to:pairAddr,
-        data:'0x0902f1ac' // getReserves()
-      },'latest']})});
-    const d = await r.json();
-    if(!d.result||d.result==='0x') return 0;
-    const hex = d.result.slice(2);
-    const r0 = BigInt('0x'+hex.slice(0,64));
-    const r1 = BigInt('0x'+hex.slice(64,128));
-    // r0 = UNITY (9 decimals), r1 = WETH (18 decimals)
-    const unityPerEth = Number(r0) / 1e9 / (Number(r1) / 1e18);
-    return unityPerEth;
-  }catch(e){ return 0; }
+    const [ethRes, dexRes] = await Promise.all([
+      fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd').then(r=>r.json()),
+      fetch('https://api.dexscreener.com/latest/dex/tokens/'+UNITY_CA_LOWER).then(r=>r.json())
+    ]);
+    _cache.ethPrice = ethRes?.ethereum?.usd || 0;
+    const pair = dexRes?.pairs?.[0];
+    if(pair){
+      _cache.unityUsd = parseFloat(pair.priceUsd||0);
+      _cache.marketCap = parseFloat(pair.fdv||pair.marketCap||0);
+    }
+    _cache.ts = now;
+  }catch(e){}
 }
 
 async function getWalletBalance(rpc, wallet){
   try{
-    // Use Alchemy getTokenBalances endpoint
-    const alchemyBase = rpc.replace('/v2/', '/v2/');
-    const r = await fetch(alchemyBase,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        jsonrpc:'2.0',id:4,
-        method:'alchemy_getTokenBalances',
-        params:[wallet, [UNITY_CA_LOWER]]
-      })
-    });
+    const addr = wallet.toLowerCase().replace('0x','').padStart(64,'0');
+    const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',id:4,method:'alchemy_getTokenBalances',
+        params:[wallet,[UNITY_CA_LOWER]]})});
     const d = await r.json();
-    console.log('[walletBal alchemy]', JSON.stringify(d?.result?.tokenBalances?.[0]));
-    const hexBal = d?.result?.tokenBalances?.[0]?.tokenBalance;
-    if(!hexBal||hexBal==='0x0') return 0;
-    return Number(BigInt(hexBal)) / 1e9;
-  }catch(e){ console.error('[walletBal error]',e.message); return 0; }
+    const hex = d?.result?.tokenBalances?.[0]?.tokenBalance;
+    if(!hex||hex==='0x0') return 0;
+    return Number(BigInt(hex))/1e9;
+  }catch(e){return 0;}
 }
 
 async function getTotalSupply(rpc){
   try{
     const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:5,params:[{
-        to:UNITY_CA_LOWER,
-        data:'0x18160ddd' // totalSupply()
-      },'latest']})});
+      body:JSON.stringify({jsonrpc:'2.0',id:5,method:'eth_call',
+        params:[{to:UNITY_CA_LOWER,data:'0x18160ddd'},'latest']})});
     const d = await r.json();
     if(!d.result||d.result==='0x') return 0;
-    return Number(BigInt(d.result)) / 1e9;
-  }catch(e){ return 0; }
+    return Number(BigInt(d.result))/1e9;
+  }catch(e){return 0;}
 }
 
-function formatAmount(n){
+function fmtAmt(n){
   if(n>=1e12) return (n/1e12).toFixed(2)+'T';
-  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
-  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
-  if(n>=1e3) return (n/1e3).toFixed(2)+'K';
+  if(n>=1e9)  return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6)  return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3)  return (n/1e3).toFixed(2)+'K';
   return n.toFixed(0);
 }
-
-/* ── Buy Bot ── */
-const UNITY_CA = '0xFd0bb211d479710dFa01d3d98751767F51edb2d9'.toLowerCase();
-const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
-let lastBuyBlock = 0;
-
-let _priceCache = {ethPrice:0, unityPriceUsd:0, marketCap:0, lastFetch:0};
 
 async function checkBuys(){
   if(!ALCHEMY_KEY) return;
   try{
     const rpc = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`;
-    
-    // Cache price data for 60 seconds
-    const now = Date.now();
-    if(now - _priceCache.lastFetch > 60000){
-      const [ethPriceRes, dexRes] = await Promise.all([
-        getEthPrice(),
-        fetch('https://api.dexscreener.com/latest/dex/tokens/0xfd0bb211d479710dfa01d3d98751767f51edb2d9').then(r=>r.json()).catch(()=>({}))
-      ]);
-      _priceCache.ethPrice = ethPriceRes;
-      const pair = dexRes?.pairs?.[0];
-      if(pair){
-        _priceCache.unityPriceUsd = parseFloat(pair.priceUsd||0);
-        _priceCache.marketCap = parseFloat(pair.fdv||pair.marketCap||0);
-      }
-      _priceCache.lastFetch = now;
-    }
+
+    // Get latest block
     const blockRes = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({jsonrpc:'2.0',method:'eth_blockNumber',params:[],id:1})});
     const blockData = await blockRes.json();
     const latestBlock = parseInt(blockData.result,16);
-    if(lastBuyBlock===0){lastBuyBlock=latestBlock;return;} // start from NOW, no old events
-    if(latestBlock<=lastBuyBlock)return;
+    if(lastBuyBlock===0){lastBuyBlock=latestBlock;return;}
+    if(latestBlock<=lastBuyBlock) return;
+
+    // Get Transfer events
     const logsRes = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({jsonrpc:'2.0',method:'eth_getLogs',id:2,params:[{
         fromBlock:'0x'+lastBuyBlock.toString(16),
         toBlock:'0x'+latestBlock.toString(16),
-        address:UNITY_CA,
+        address:UNITY_CA_LOWER,
         topics:['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef']
       }]})});
     const logsData = await logsRes.json();
     lastBuyBlock = latestBlock;
-    if(!logsData.result||!logsData.result.length)return;
+    if(!logsData.result?.length) return;
 
-    // Group by txHash - only show largest transfer per transaction
+    // Group by txHash - show only largest transfer per transaction
     const txMap = {};
     for(const log of logsData.result){
-      const txHash = log.transactionHash;
-      const rawHex = log.data.startsWith('0x') ? log.data : '0x'+log.data;
-      const amt = Number(BigInt(rawHex)) / 1e9;
-      if(!txMap[txHash] || amt > txMap[txHash].amount){
-        txMap[txHash] = {log, amount: amt};
-      }
+      const rawHex = log.data.startsWith('0x')?log.data:'0x'+log.data;
+      const amt = Number(BigInt(rawHex))/1e9;
+      if(!txMap[log.transactionHash]||amt>txMap[log.transactionHash].amount)
+        txMap[log.transactionHash]={log,amount:amt};
     }
 
-    for(const {log} of Object.values(txMap)){
-      const to = '0x'+log.topics[2].slice(26);
-      // Get actual buyer from transaction (tx.from = real buyer wallet)
-      let actualBuyer = to;
-      try{
-        const txR = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+    // Refresh price cache once per cycle
+    await refreshPriceCache();
+
+    for(const {log,amount} of Object.values(txMap)){
+      if(amount<1000000) continue; // min 1M tokens
+
+      // Get actual buyer (tx.from) and wallet balance in parallel
+      const [txData, walletBal] = await Promise.all([
+        fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({jsonrpc:'2.0',method:'eth_getTransactionByHash',id:6,
-            params:[log.transactionHash]})});
-        const txD = await txR.json();
-        if(txD?.result?.from){ actualBuyer = txD.result.from; shortWallet = actualBuyer.slice(0,6)+'...'+actualBuyer.slice(-4); }
-      }catch(e){}
-      let amount;
-      try{
-        const rawHex = log.data.startsWith('0x') ? log.data : '0x'+log.data;
-        amount = Number(BigInt(rawHex)) / 1e9;
-      }catch(e){ amount = parseInt(log.data,16)/1e9; } // UNITY 9 decimals
-      if(amount<1000000)continue; // min 1M tokens
-      let shortWallet = to.slice(0,6)+'...'+to.slice(-4);
-      const shortAmount = amount>=1e9?(amount/1e9).toFixed(1)+'B':
-                          amount>=1e6?(amount/1e6).toFixed(1)+'M':
-                          amount>=1e3?(amount/1e3).toFixed(1)+'K':amount.toFixed(0);
-
-      // Emoji scaling
-      let emojiCount = amount>=1e11?8:amount>=1e10?6:
-                       amount>=1e9?5:amount>=1e8?4:amount>=1e7?3:
-                       amount>=1e6?2:1;
-      if(amount>=1e12) emojiCount = 10 + Math.floor((amount-1e12)/1e11); // +1 per 100B above 1T
-      emojiCount = Math.min(emojiCount, 50);
-
-      // Each custom emoji placeholder is 1 char wide in the string
-      // but Telegram counts UTF-16 code units for entity offsets
-      // Build text with custom Unity emoji using entities
-      const placeholder = '🐾';
-      const emojiStr = placeholder.repeat(emojiCount);
-
-      // Fetch wallet data in parallel (prices come from cache)
-      const [walletBal, totalSupply] = await Promise.all([
-        getWalletBalance(rpc, actualBuyer),
-        getTotalSupply(rpc)
+            params:[log.transactionHash]})}).then(r=>r.json()).catch(()=>({})),
+        getWalletBalance(rpc,'0x'+log.topics[2].slice(26))
       ]);
 
-      const ethPrice = _priceCache.ethPrice;
-      const unityPriceUsd = _priceCache.unityPriceUsd;
-      const marketCap = _priceCache.marketCap;
-      const usdValue = amount * unityPriceUsd;
-      console.log('[buybot] walletBal:', walletBal, 'amount:', amount, 'totalSupply:', totalSupply);
+      const buyer = txData?.result?.from || '0x'+log.topics[2].slice(26);
+      const shortBuyer = buyer.slice(0,6)+'...'+buyer.slice(-4);
 
-      const titleStr = 'Unity Software Buy!';
-      const buyerStr = 'Buyer';
-      const txStr = 'TX';
+      // Emoji scaling
+      let emojiCount = amount>=1e11?8:amount>=1e10?6:amount>=1e9?5:
+                       amount>=1e8?4:amount>=1e7?3:amount>=1e6?2:1;
+      if(amount>=1e12) emojiCount = 10+Math.floor((amount-1e12)/1e11);
+      emojiCount = Math.min(emojiCount,50);
+
+      const usdValue = amount*_cache.unityUsd;
 
       const caption =
-        `${emojiStr}\n`+
-        `<b>${titleStr}</b>\n\n`+
-        `🔀 <b>Got ${formatAmount(amount)} UNITY</b> (<b>$${usdValue.toFixed(2)}</b>)\n`+
-        `👤 <b><a href="https://etherscan.io/address/${actualBuyer}">${buyerStr}</a></b> / <b><a href="https://etherscan.io/tx/${log.transactionHash}">${txStr}</a></b>\n`+
-        `🪙 <b>Holding ${walletBal>0?formatAmount(walletBal)+' UNITY':'N/A'}</b>\n`+
-        `💸 <b>Market Cap $${marketCap>0?formatAmount(marketCap):'~$67K'}</b>\n\n`+
+        `${'🐾'.repeat(emojiCount)}\n`+
+        `<b>Unity Software Buy!</b>\n\n`+
+        `🔀 <b>Got ${fmtAmt(amount)} UNITY${usdValue>0?' ($'+usdValue.toFixed(2)+')':''}</b>\n`+
+        `👤 <b><a href="https://etherscan.io/address/${buyer}">${shortBuyer}</a> / <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a></b>\n`+
+        `🪙 <b>Holding ${walletBal>0?fmtAmt(walletBal)+' UNITY':'N/A'}</b>\n`+
+        `💸 <b>Market Cap ${_cache.marketCap>0?'$'+fmtAmt(_cache.marketCap):'N/A'}</b>\n\n`+
         `<b>Roaring Kitty's last 4 posts all point to UNITY.</b>`;
 
-            // HTML parse_mode handles all formatting and links
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
-        caption,
-        null,
+        caption, null,
         {reply_markup:{inline_keyboard:[
           [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
           [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
         ]}}
       );
-      // Then send text message with custom emoji
-
     }
   }catch(e){console.error('[buybot]',e.message);}
 }
