@@ -413,17 +413,26 @@ async function checkBuys(){
       const emojiStr = placeholder.repeat(emojiCount);
 
       // Fetch extra data
-      const [ethPrice, unityPerEth, walletBal, totalSupply] = await Promise.all([
+      const [ethPrice, walletBal, totalSupply] = await Promise.all([
         getEthPrice(),
-        getUnityPrice(rpc),
         getWalletBalance(rpc, to),
         getTotalSupply(rpc)
       ]);
 
-      const ethSpent = amount / (unityPerEth || 1);
-      const usdSpent = ethSpent * ethPrice;
-      const pricePerToken = unityPerEth > 0 ? ethPrice / unityPerEth : 0;
-      const marketCap = pricePerToken * totalSupply;
+      // Get UNITY price from DexScreener (more reliable)
+      let unityPriceUsd = 0;
+      let marketCap = 0;
+      try{
+        const pr = await fetch('https://api.dexscreener.com/latest/dex/tokens/0xfd0bb211d479710dfa01d3d98751767f51edb2d9');
+        const pd = await pr.json();
+        const pair = pd?.pairs?.[0];
+        if(pair){
+          unityPriceUsd = parseFloat(pair.priceUsd||0);
+          marketCap = parseFloat(pair.fdv||pair.marketCap||0);
+        }
+      }catch(e){}
+
+      const usdValue = amount * unityPriceUsd;
 
       const titleStr = 'Unity Software Buy!';
       const buyerStr = 'Buyer';
@@ -432,8 +441,7 @@ async function checkBuys(){
       const caption =
         `${emojiStr}\n`+
         `${titleStr}\n\n`+
-        `🔀 Spent $${usdSpent.toFixed(2)} (${ethSpent.toFixed(3)} ETH)\n`+
-        `🔀 Got ${formatAmount(amount)} UNITY\n`+
+        `🔀 Got ${formatAmount(amount)} UNITY ($${usdValue.toFixed(2)})\n`+
         `👤 ${buyerStr} / ${txStr}\n`+
         `🪙 Holding ${formatAmount(walletBal)} UNITY\n`+
         `💸 Market Cap $${formatAmount(marketCap)}\n\n`+
