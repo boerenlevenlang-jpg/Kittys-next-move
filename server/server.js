@@ -59,14 +59,12 @@ async function tgChannelVideo(fileId,caption,entities,extra={}){
     } else {
       payload.parse_mode='HTML';
     }
-    console.log('[buybot] caption:', JSON.stringify(payload.caption));
-    console.log('[buybot] entities:', JSON.stringify(payload.caption_entities));
     const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
     const d=await r.json();
-    if(!d.ok)console.error('[TG video error]',d.description,JSON.stringify(payload.caption_entities));
+    if(!d.ok)console.error('[TG video error]',d.description);
   }catch(e){console.error('[TG video]',e.message);}
 }
 
@@ -373,7 +371,7 @@ async function checkBuys(){
       // Wallet link
       entities.push({type:'text_link',offset:utf16off(caption,walletStr),length:utf16len(walletStr),url:`https://etherscan.io/address/${to}`});
       // TX link
-      entities.push({type:'text_link',offset:utf16off(caption,txStr+' '),length:utf16len(txStr),url:`https://etherscan.io/tx/${log.transactionHash}`});
+      entities.push({type:'text_link',offset:utf16off(caption,'| '+txStr)+2,length:utf16len(txStr),url:`https://etherscan.io/tx/${log.transactionHash}`});
 
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
