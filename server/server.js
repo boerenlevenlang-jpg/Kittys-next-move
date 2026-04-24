@@ -404,7 +404,7 @@ async function checkBuys(){
         `👤 <b><a href="https://etherscan.io/address/${buyer}">${shortBuyer}</a> / <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a></b>\n`+
         `🪙 <b>Holding ${walletBal>0?fmtAmt(walletBal)+' UNITY':'N/A'}</b>\n`+
         `💸 <b>Market Cap ${_cache.marketCap>0?'$'+fmtAmt(_cache.marketCap):'N/A'}</b>\n\n`+
-        `<b>Roaring Kitty's last 4 posts all point to UNITY.</b>`;
+        `<b>😼 Roaring Kitty's last 4 posts all point to UNITY. 😼</b>`;
 
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
