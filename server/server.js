@@ -50,6 +50,18 @@ async function tgSend(chatId,text,extra={}){
 }
 async function tgChannel(text,extra={}){return tgSend(CHANNEL_ID,text,extra);}
 
+async function tgChannelVideo(fileId,caption,extra={}){
+  if(!BOT_TOKEN){console.log('[TG video]',caption.slice(0,80));return;}
+  try{
+    const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:CHANNEL_ID,video:fileId,caption,parse_mode:'HTML',disable_web_page_preview:true,...extra})
+    });
+    const d=await r.json();
+    if(!d.ok)console.error('[TG video error]',d.description);
+  }catch(e){console.error('[TG video]',e.message);}
+}
+
 function mainKeyboard(chatId){
   // web_app buttons only work in private chats (positive chat IDs)
   // Groups and channels have negative chat IDs
@@ -263,6 +275,81 @@ app.post('/webhook',async(req,res)=>{
   }
   }catch(err){console.error('[webhook error]',err.message);}
 });
+
+
+/* ── Buy Bot ── */
+const UNITY_CA = '0xFd0bb211d479710dFa01d3d98751767F51edb2d9'.toLowerCase();
+const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
+let lastBuyBlock = 0;
+
+async function checkBuys(){
+  if(!ALCHEMY_KEY) return;
+  try{
+    const rpc = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`;
+    const blockRes = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',method:'eth_blockNumber',params:[],id:1})});
+    const blockData = await blockRes.json();
+    const latestBlock = parseInt(blockData.result,16);
+    if(lastBuyBlock===0){lastBuyBlock=latestBlock-2;return;}
+    if(latestBlock<=lastBuyBlock)return;
+    const logsRes = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',method:'eth_getLogs',id:2,params:[{
+        fromBlock:'0x'+lastBuyBlock.toString(16),
+        toBlock:'0x'+latestBlock.toString(16),
+        address:UNITY_CA,
+        topics:['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef']
+      }]})});
+    const logsData = await logsRes.json();
+    lastBuyBlock = latestBlock;
+    if(!logsData.result||!logsData.result.length)return;
+    for(const log of logsData.result){
+      const to = '0x'+log.topics[2].slice(26);
+      const amount = parseInt(log.data,16)/1e18;
+      if(amount<1)continue;
+      const shortWallet = to.slice(0,6)+'...'+to.slice(-4);
+      const shortAmount = amount>=1e9?(amount/1e9).toFixed(1)+'B':
+                          amount>=1e6?(amount/1e6).toFixed(1)+'M':
+                          amount>=1e3?(amount/1e3).toFixed(1)+'K':amount.toFixed(0);
+
+      // Scaling custom Unity emoji based on buy size
+      const UNITY_EMOJI = '<tg-emoji emoji-id="5920401474512231167">U</tg-emoji>';
+      // Base emojis up to 1T, then +1 per 100B above 1T
+      let emojiCount = amount>=1e12?10:amount>=1e11?8:amount>=1e10?6:
+                       amount>=1e9?5:amount>=1e8?4:amount>=1e7?3:
+                       amount>=1e6?2:1;
+      if(amount>=1e12){
+        const extra = Math.floor((amount-1e12)/1e11); // +1 per 100B above 1T
+        emojiCount = 10 + extra;
+      }
+      emojiCount = Math.min(emojiCount, 50); // cap at 50
+      const emojis = UNITY_EMOJI.repeat(emojiCount);
+
+      const msg =
+        `${emojis}\n\n`+
+        `<b>$UNITY Buy!</b>\n\n`+
+        `Spent: <b>${shortAmount} $UNITY</b>\n`+
+        `Buyer: <a href="https://etherscan.io/address/${to}">${shortWallet}</a> | `+
+        `<a href="https://etherscan.io/tx/${log.transactionHash}">TX</a>\n`+
+        `Market Cap: <a href="${DEX_URL}">View Chart</a>\n\n`+
+        `Roaring Kitty's last 4 posts all point to UNITY.`;
+      await tgChannelVideo(
+        'AAMCBQADGQEAAgFPaetLG1p04z0MR2asjwsEyYwncIwAAhMeAAIzZWBXhfdKol_U6sEBAAdtAAM7BA',
+        msg,
+        {reply_markup:{inline_keyboard:[
+          [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
+          [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
+        ]}}
+      );
+    }
+  }catch(e){console.error('[buybot]',e.message);}
+}
+
+if(ALCHEMY_KEY){
+  setInterval(checkBuys,30000);
+  console.log('Buy bot active');
+}else{
+  console.log('Buy bot inactive - add ALCHEMY_KEY to Railway vars');
+}
 
 ensureComp(currentPeriod());
 app.listen(PORT,'0.0.0.0',()=>{
