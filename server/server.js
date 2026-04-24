@@ -326,52 +326,19 @@ async function checkBuys(){
 
       // Each custom emoji placeholder is 1 char wide in the string
       // but Telegram counts UTF-16 code units for entity offsets
-      const PLACEHOLDER = 'U'; // 1 char per emoji placeholder
-      const emojiLine = PLACEHOLDER.repeat(emojiCount);
-      const titleLine = 'Unity Software Buy!';
-      const line1 = `Got ${shortAmount} UNITY`;
-      const line2 = `${shortWallet} / TX`;
-      const line3 = `Roaring Kitty's last 4 posts all point to UNITY.`;
+      const emojiLine = '⚪'.repeat(emojiCount);
 
-      const caption = `${emojiLine}
-${titleLine}
-
-${line1}
-${line2}
-
-${line3}`;
-
-      // Build entities
-      const entities = [];
-
-      // Custom emoji for each placeholder
-      for(let i=0;i<emojiCount;i++){
-        entities.push({
-          type:'custom_emoji',
-          offset:i,
-          length:1,
-          custom_emoji_id:'5920401474512231167'
-        });
-      }
-
-      let off = emojiCount + 1; // after emojiLine + newline
-
-      // Bold title
-      entities.push({type:'bold', offset:off, length:titleLine.length});
-      off += titleLine.length + 2; // title + \n\n
-      off += line1.length + 1; // line1 + \n
-
-      // Buyer link
-      entities.push({type:'text_link', offset:off, length:shortWallet.length,
-        url:`https://etherscan.io/address/${to}`});
-      // TX link  
-      entities.push({type:'text_link', offset:off+shortWallet.length+3, length:2,
-        url:`https://etherscan.io/tx/${log.transactionHash}`});
+      const caption =
+        `${emojiLine}\n`+
+        `<b>Unity Software Buy!</b>\n\n`+
+        `🔀 Got <b>${shortAmount} UNITY</b>\n`+
+        `👤 <a href="https://etherscan.io/address/${to}">${shortWallet}</a> | <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a>\n\n`+
+        `Roaring Kitty's last 4 posts all point to UNITY.`;
 
       await tgChannelVideo(
         'BQACAgUAAxkBAAIBUWnrcEYbWvDwORmLM06XW6SAUrIjAAIkHwACM2VgV_M-lxxXlO7WOwQ',
         caption,
-        entities,
+        null,
         {reply_markup:{inline_keyboard:[
           [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
           [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
