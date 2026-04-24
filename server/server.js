@@ -394,16 +394,16 @@ async function checkBuys(){
     for(const {log,amount} of Object.values(txMap)){
       if(amount<1000000) continue; // min 1M tokens
 
-      // Get actual buyer (tx.from) and wallet balance in parallel
-      const [txData, walletBal] = await Promise.all([
-        fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({jsonrpc:'2.0',method:'eth_getTransactionByHash',id:6,
-            params:[log.transactionHash]})}).then(r=>r.json()).catch(()=>({})),
-        getWalletBalance(rpc,'0x'+log.topics[2].slice(26))
-      ]);
+      // Get actual buyer from tx.from
+      const txData = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({jsonrpc:'2.0',method:'eth_getTransactionByHash',id:6,
+          params:[log.transactionHash]})}).then(r=>r.json()).catch(()=>({}));
 
       const buyer = txData?.result?.from || '0x'+log.topics[2].slice(26);
       const shortBuyer = buyer.slice(0,6)+'...'+buyer.slice(-4);
+
+      // Now fetch wallet balance for the ACTUAL buyer
+      const walletBal = await getWalletBalance(rpc, buyer);
 
       // Emoji scaling
       let emojiCount = amount>=1e11?8:amount>=1e10?6:amount>=1e9?5:
@@ -420,7 +420,7 @@ async function checkBuys(){
         `👤 <b><a href="https://etherscan.io/address/${buyer}">${shortBuyer}</a> / <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a></b>\n`+
         `🪙 <b>Holding ${walletBal>0?fmtAmt(walletBal)+' UNITY':'N/A'}</b>\n`+
         `💸 <b>Market Cap ${_cache.marketCap>0?'$'+fmtAmt(_cache.marketCap):'N/A'}</b>\n\n`+
-        `<b>😼Roaring Kitty's last 4 posts all point to UNITY😼</b>`;
+        `<b>😼Roaring Kitty's last 4 posts all point to UNITY</b>`;
 
       // Skip if already posted
       if(postedTxs.has(log.transactionHash)) continue;
