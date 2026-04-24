@@ -284,6 +284,7 @@ app.post('/webhook',async(req,res)=>{
 const UNITY_CA_LOWER = '0xfd0bb211d479710dfa01d3d98751767f51edb2d9';
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 let lastBuyBlock = 0;
+const postedTxs = new Set(); // track posted transactions
 
 // Price cache - refresh every 60s
 let _cache = {ethPrice:0, unityUsd:0, marketCap:0, ts:0};
@@ -404,7 +405,12 @@ async function checkBuys(){
         `👤 <b><a href="https://etherscan.io/address/${buyer}">${shortBuyer}</a> / <a href="https://etherscan.io/tx/${log.transactionHash}">TX</a></b>\n`+
         `🪙 <b>Holding ${walletBal>0?fmtAmt(walletBal)+' UNITY':'N/A'}</b>\n`+
         `💸 <b>Market Cap ${_cache.marketCap>0?'$'+fmtAmt(_cache.marketCap):'N/A'}</b>\n\n`+
-        `<b>😼 Roaring Kitty's last 4 posts all point to UNITY. 😼</b>`;
+        `<b>😼Roaring Kitty's last 4 posts all point to UNITY😼</b>`;
+
+      // Skip if already posted
+      if(postedTxs.has(log.transactionHash)) continue;
+      postedTxs.add(log.transactionHash);
+      if(postedTxs.size>500) postedTxs.clear(); // prevent memory leak
 
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
