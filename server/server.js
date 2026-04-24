@@ -283,6 +283,72 @@ app.post('/webhook',async(req,res)=>{
 });
 
 
+
+/* ── Buy Bot Helpers ── */
+const UNITY_CA_LOWER = '0xfd0bb211d479710dfa01d3d98751767f51edb2d9';
+
+async function getEthPrice(){
+  try{
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+    const d = await r.json();
+    return d?.ethereum?.usd || 0;
+  }catch(e){ return 0; }
+}
+
+async function getUnityPrice(rpc){
+  try{
+    // Get reserves from Uniswap pair to calculate price
+    const pairAddr = '0xc85589c893c9a4cc7ea0b193095712aca1b8441c';
+    const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:3,params:[{
+        to:pairAddr,
+        data:'0x0902f1ac' // getReserves()
+      },'latest']})});
+    const d = await r.json();
+    if(!d.result||d.result==='0x') return 0;
+    const hex = d.result.slice(2);
+    const r0 = BigInt('0x'+hex.slice(0,64));
+    const r1 = BigInt('0x'+hex.slice(64,128));
+    // r0 = UNITY (9 decimals), r1 = WETH (18 decimals)
+    const unityPerEth = Number(r0) / 1e9 / (Number(r1) / 1e18);
+    return unityPerEth;
+  }catch(e){ return 0; }
+}
+
+async function getWalletBalance(rpc, wallet){
+  try{
+    const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:4,params:[{
+        to:UNITY_CA_LOWER,
+        data:'0x70a08231000000000000000000000000'+wallet.slice(2)
+      },'latest']})});
+    const d = await r.json();
+    if(!d.result||d.result==='0x') return 0;
+    return Number(BigInt(d.result)) / 1e9;
+  }catch(e){ return 0; }
+}
+
+async function getTotalSupply(rpc){
+  try{
+    const r = await fetch(rpc,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',method:'eth_call',id:5,params:[{
+        to:UNITY_CA_LOWER,
+        data:'0x18160ddd' // totalSupply()
+      },'latest']})});
+    const d = await r.json();
+    if(!d.result||d.result==='0x') return 0;
+    return Number(BigInt(d.result)) / 1e9;
+  }catch(e){ return 0; }
+}
+
+function formatAmount(n){
+  if(n>=1e12) return (n/1e12).toFixed(2)+'T';
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(2)+'K';
+  return n.toFixed(0);
+}
+
 /* ── Buy Bot ── */
 const UNITY_CA = '0xFd0bb211d479710dFa01d3d98751767F51edb2d9'.toLowerCase();
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
@@ -343,32 +409,49 @@ async function checkBuys(){
       // Each custom emoji placeholder is 1 char wide in the string
       // but Telegram counts UTF-16 code units for entity offsets
       // Build text with custom Unity emoji using entities
-      const UNITY_EMOJI_ID = '5920401474512231167';
-      const placeholder = '😼'; // smirking cat = Roaring Kitty
+      const placeholder = '😼';
       const emojiStr = placeholder.repeat(emojiCount);
+
+      // Fetch extra data
+      const [ethPrice, unityPerEth, walletBal, totalSupply] = await Promise.all([
+        getEthPrice(),
+        getUnityPrice(rpc),
+        getWalletBalance(rpc, to),
+        getTotalSupply(rpc)
+      ]);
+
+      const ethSpent = amount / (unityPerEth || 1);
+      const usdSpent = ethSpent * ethPrice;
+      const pricePerToken = unityPerEth > 0 ? ethPrice / unityPerEth : 0;
+      const marketCap = pricePerToken * totalSupply;
+
       const titleStr = 'Unity Software Buy!';
-      const gotStr = `Got ${shortAmount} UNITY`;
-      const walletStr = shortWallet;
+      const buyerStr = 'Buyer';
       const txStr = 'TX';
-      const line3 = "Roaring Kitty's last 4 posts all point to UNITY.";
 
-      const caption = `${emojiStr}\n${titleStr}\n\n🔀 ${gotStr}\n👤 ${walletStr} | ${txStr}\n\n${line3}`;
+      const caption =
+        `${emojiStr}\n`+
+        `${titleStr}\n\n`+
+        `🔀 Spent $${usdSpent.toFixed(2)} (${ethSpent.toFixed(3)} ETH)\n`+
+        `🔀 Got ${formatAmount(amount)} UNITY\n`+
+        `👤 ${buyerStr} / ${txStr}\n`+
+        `🪙 Holding ${formatAmount(walletBal)} UNITY\n`+
+        `💸 Market Cap $${formatAmount(marketCap)}\n\n`+
+        `Roaring Kitty's last 4 posts all point to UNITY.`;
 
-      // Build entities using proper UTF-16 offset calculation
-      function utf16len(s){ return s.split('').reduce((a,c)=>a+(c.codePointAt(0)>0xFFFF?2:1),0); }
-      function utf16off(full,sub){ 
-        const idx=full.indexOf(sub); 
-        return idx===-1?0:utf16len(full.slice(0,idx)); 
-      }
+      function utf16len(s){return [...s].reduce((a,c)=>a+(c.codePointAt(0)>0xFFFF?2:1),0);}
+      function utf16off(full,sub){const idx=full.indexOf(sub);return idx===-1?-1:utf16len([...full].slice(0,idx).join(''));}
 
       const entities = [];
-      // Note: custom_emoji requires Premium - using plain U placeholders
       // Bold title
-      entities.push({type:'bold',offset:utf16off(caption,titleStr),length:utf16len(titleStr)});
-      // Wallet link
-      entities.push({type:'text_link',offset:utf16off(caption,walletStr),length:utf16len(walletStr),url:`https://etherscan.io/address/${to}`});
+      const titleOff = utf16off(caption, titleStr);
+      if(titleOff>=0) entities.push({type:'bold',offset:titleOff,length:utf16len(titleStr)});
+      // Buyer link
+      const buyerOff = utf16off(caption, buyerStr);
+      if(buyerOff>=0) entities.push({type:'text_link',offset:buyerOff,length:utf16len(buyerStr),url:`https://etherscan.io/address/${to}`});
       // TX link
-      entities.push({type:'text_link',offset:utf16off(caption,'| '+txStr)+2,length:utf16len(txStr),url:`https://etherscan.io/tx/${log.transactionHash}`});
+      const txOff = utf16off(caption, '/ '+txStr)+2;
+      if(txOff>=2) entities.push({type:'text_link',offset:txOff,length:utf16len(txStr),url:`https://etherscan.io/tx/${log.transactionHash}`});
 
       await tgChannelVideo(
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
