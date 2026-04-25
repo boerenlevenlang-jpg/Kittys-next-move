@@ -65,15 +65,13 @@ async function tgChannelVideo(fileId,caption,entities,extra={}){
 }
 
 function mainKeyboard(chatId){
-  // web_app buttons only work in private chats (positive chat IDs)
-  // Groups and channels have negative chat IDs
   const isPrivate = chatId && Number(chatId) > 0;
   const playBtn = isPrivate
-    ? {text:'PLAY IN TELEGRAM - WIN 1 TRILLION $UNITY',web_app:{url:MINI_APP_URL}}
-    : {text:'PLAY - WIN 1 TRILLION $UNITY',url:MINI_APP_URL};
+    ? {text:'🎮 Play in Telegram',web_app:{url:MINI_APP_URL}}
+    : {text:'🎮 Play in Telegram',url:'https://t.me/unityoneth_bot'};
   return {inline_keyboard:[
     [playBtn],
-    [{text:'Open in Browser',url:MINI_APP_URL}],
+    [{text:'🖥️ Open in Browser',url:MINI_APP_URL}],
     [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
   ]};
 }
@@ -100,7 +98,11 @@ app.post('/api/score',async(req,res)=>{
       `@${playerName} leads with <b>${score.toLocaleString()} $UNITY</b>\n\n`+
       `${top3}\n\n`+
       `${daysLeft(period)} days left - ${PRIZE} $UNITY prize`,
-      {reply_markup:mainKeyboard(null)}
+      {reply_markup:{inline_keyboard:[
+        [{text:'🎮 Play in Telegram',url:'https://t.me/unityoneth_bot'}],
+        [{text:'🖥️ Open in Browser',url:MINI_APP_URL}],
+        [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
+      ]}}
     );
   }
   res.json({rank,total:board.length,period,daysLeft:daysLeft(period)});
@@ -282,14 +284,6 @@ app.post('/webhook',async(req,res)=>{
 
 /* ── Buy Bot ── */
 const UNITY_CA_LOWER = '0xfd0bb211d479710dfa01d3d98751767f51edb2d9';
-// Known Uniswap pools/routers - transfers FROM these = buys
-const UNISWAP_POOLS = new Set([
-  '0xc85589c893c9a4cc7ea0b193095712aca1b8441c', // UNITY/WETH pair
-  '0x7a250d5630b4cf539739df2c5dacb4c659f2488d', // Uniswap V2 Router
-  '0xe592427a0aece92de3edee1f18e0157c05861564', // Uniswap V3 Router
-  '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45', // Uniswap V3 Router 2
-  '0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b', // Uniswap Universal Router
-]);
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 let lastBuyBlock = 0;
 const postedTxs = new Set(); // track posted transactions
@@ -375,13 +369,6 @@ async function checkBuys(){
     // Group by txHash - show only largest transfer per transaction
     const txMap = {};
     for(const log of logsData.result){
-      const fromAddr = ('0x'+log.topics[1].slice(26)).toLowerCase();
-      const toAddr = ('0x'+log.topics[2].slice(26)).toLowerCase();
-      console.log('[buybot] from:', fromAddr, 'to:', toAddr.slice(0,10));
-      // Only process buys: transfer FROM a known Uniswap pool TO a wallet
-      if(!UNISWAP_POOLS.has(fromAddr)) continue;
-      // Skip if to address is also a pool (internal transfers)
-      if(UNISWAP_POOLS.has(toAddr)) continue;
       const rawHex = log.data.startsWith('0x')?log.data:'0x'+log.data;
       const amt = Number(BigInt(rawHex))/1e9;
       if(!txMap[log.transactionHash]||amt>txMap[log.transactionHash].amount)
@@ -400,6 +387,7 @@ async function checkBuys(){
           params:[log.transactionHash]})}).then(r=>r.json()).catch(()=>({}));
 
       const buyer = txData?.result?.from || '0x'+log.topics[2].slice(26);
+      // Skip if buyer is a known router/pool = this is a sell not a buy
       const shortBuyer = buyer.slice(0,6)+'...'+buyer.slice(-4);
 
       // Now fetch wallet balance for the ACTUAL buyer
