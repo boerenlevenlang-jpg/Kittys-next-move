@@ -419,7 +419,7 @@ async function checkBuys(){
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
         caption, null,
         {reply_markup:{inline_keyboard:[
-          [{text:'Play - Win 1 Trillion $UNITY',url:MINI_APP_URL}],
+          [{text:'🎮 Play in Telegram - Win 1 Trillion $UNITY',url:'https://t.me/unityoneth_bot'}],
           [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
         ]}}
       );
