@@ -664,15 +664,20 @@ const STEP=1000/60; // fixed 60fps physics step
 function loop(timestamp){
   if(!cutsceneDone){drawCutscene();requestAnimationFrame(loop);return;}
   if(!gameStarted||gameOver){return;}
-  const _delta=Math.min(timestamp-_lastTime,50); // cap at 50ms to avoid spiral
+  const _delta=Math.min(timestamp-_lastTime,100); // cap at 100ms
   _lastTime=timestamp;
   _accum+=_delta;
-  // Only run game logic when enough time has accumulated for a full step
-  if(_accum<STEP){requestAnimationFrame(loop);return;}
-  _accum-=STEP;
-  frame++;blinkT++;
-  if(cTimer>0){cTimer--;if(cTimer===0)combo=1;}
-  if(frame%600===0){wave++;spawnRate=Math.max(35,spawnRate-8);}
+  // Run as many physics steps as needed to catch up
+  // This keeps game speed identical on 30fps, 60fps, or 120fps
+  let _steps=0;
+  while(_accum>=STEP&&_steps<3){
+    _accum-=STEP;
+    _steps++;
+  }
+  if(_steps===0){requestAnimationFrame(loop);return;}
+  frame+=_steps;blinkT+=_steps;
+  if(cTimer>0){cTimer-=_steps;if(cTimer<=0){cTimer=0;combo=1;}}
+  if(Math.floor(frame/600)>Math.floor((frame-_steps)/600)){wave++;spawnRate=Math.max(35,spawnRate-8);}
   if(frame-lastSpawn>spawnRate){spawn();lastSpawn=frame;}
   if(shake>0)shake--;
   items=items.filter(i=>i.alive&&i.y<H+50);
