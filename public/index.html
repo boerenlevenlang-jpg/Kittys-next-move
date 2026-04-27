@@ -646,6 +646,7 @@ function skipToRules(){
 
 function startGame(){
   gameOver=false;
+  cutsceneDone=true; // ensure cutscene doesn't replay
   document.getElementById('gc').style.visibility='visible';
   enterMobileGame();
   document.getElementById('rules-overlay').style.display='none';
@@ -653,7 +654,8 @@ function startGame(){
   const sb=document.getElementById('skip-btn');if(sb)sb.style.display='none';
   score=0;lives=3;wave=1;combo=1;cTimer=0;uCount=0;
   items=[];parts=[];floats=[];
-  frame=0;lastSpawn=0;spawnRate=70;shake=0;blinkT=0;
+  frame=0;lastSpawn=0;spawnRate=55;shake=0;blinkT=0;
+  _lastTime=0;_accum=0; // reset timing
   mx=W/2;my=H-40;
   const go=document.getElementById('go-overlay');
   if(go)go.remove();
