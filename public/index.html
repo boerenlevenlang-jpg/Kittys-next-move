@@ -108,6 +108,7 @@ body{display:flex;flex-direction:column;align-items:center}
 
 positionGameCanvas();
 updateLinksVisibility();
+detectFPS(); // measure FPS in background on load
 
 /* ── Ask username if not in Telegram Mini App ── */
 function askUsernameIfNeeded(){
@@ -154,6 +155,7 @@ X.textBaseline='alphabetic';
 // Position canvas immediately
 positionGameCanvas();
 updateLinksVisibility();
+detectFPS(); // measure FPS in background on load
 
 /* ── Ask username if not in Telegram Mini App ── */
 function askUsernameIfNeeded(){
@@ -646,8 +648,7 @@ function skipToRules(){
 
 function startGame(){
   gameOver=false;
-  cutsceneDone=true;
-  detectFPS(); // ensure cutscene doesn't replay
+  cutsceneDone=true; // ensure cutscene doesn't replay
   document.getElementById('gc').style.visibility='visible';
   enterMobileGame();
   document.getElementById('rules-overlay').style.display='none';
@@ -726,43 +727,34 @@ loop();
 
 function openInBrowser(){
   const url=window.location.href;
-  positionGameCanvas();
-updateLinksVisibility();
-
-/* ── Ask username if not in Telegram Mini App ── */
-function askUsernameIfNeeded(){
-  const u = getTgUser();
-  if(u) return; // Telegram provides it automatically
-  const stored = localStorage.getItem('unity_pname');
-  // Skip if we already have a real username (not Player or anon_xxx)
-  if(stored && stored !== 'Player' && !stored.startsWith('anon_')) return;
-  const name = prompt('Enter your Telegram @username for the leaderboard (without @):','');
-  if(name && name.trim()){
-    const clean = name.trim().replace(/^@/,'');
-    localStorage.setItem('unity_pname', clean);
-    localStorage.setItem('unity_pid', 'browser_'+clean); // consistent ID
-  }
-}
-askUsernameIfNeeded();
-
-if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.openLink(url);}
+  if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.openLink(url);}
   else{window.open(url,'_blank');}
 }
 if(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData){
   const bb=document.getElementById('browser-btn');if(bb)bb.style.display='block';
 }
 
+
+/* ── FPS detection for score fairness ── */
+let _scoreMultiplier = 1;
+function detectFPS(){
+  const start=performance.now();
+  let frames=0;
+  function count(){
+    frames++;
+    if(frames<30){requestAnimationFrame(count);}
+    else{
+      const fps=frames/((performance.now()-start)/1000);
+      _scoreMultiplier = fps<40 ? 0.5 : 1;
+    }
+  }
+  requestAnimationFrame(count);
+}
 </script>
 
 <div id="browser-btn" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:500;display:none;">
   <span onclick="openInBrowser()" style="font-family:'Bebas Neue',monospace;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);padding:6px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;display:block;">&#127760; Open in Browser</span>
 </div>
 <div id="exit-game-btn" onclick="exitBtnClicked()">✕ EXIT</div>
-</body></html
-
-
-<div id="browser-btn" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:500;display:none;">
-  <span onclick="openInBrowser()" style="font-family:'Bebas Neue',monospace;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);padding:6px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;display:block;">&#127760; Open in Browser</span>
-</div>
-<div id="exit-game-btn" onclick="exitBtnClicked()">✕ EXIT</div>
-</body></html>
+</body>
+</html>
