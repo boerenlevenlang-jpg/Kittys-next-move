@@ -368,7 +368,13 @@ async function checkBuys(){
 
     // Group by txHash - show only largest transfer per transaction
     const txMap = {};
+    const PAIR_ADDR = '0xc85589c893c9a4cc7ea0b193095712aca1b8441c';
     for(const log of logsData.result){
+      const fromAddr = ('0x'+log.topics[1].slice(26)).toLowerCase();
+      const toAddr   = ('0x'+log.topics[2].slice(26)).toLowerCase();
+      // BUY = tokens flow FROM the pair TO a wallet
+      if(fromAddr !== PAIR_ADDR) continue;
+      if(toAddr === PAIR_ADDR) continue;
       const rawHex = log.data.startsWith('0x')?log.data:'0x'+log.data;
       const amt = Number(BigInt(rawHex))/1e9;
       if(!txMap[log.transactionHash]||amt>txMap[log.transactionHash].amount)
@@ -386,8 +392,17 @@ async function checkBuys(){
         body:JSON.stringify({jsonrpc:'2.0',method:'eth_getTransactionByHash',id:6,
           params:[log.transactionHash]})}).then(r=>r.json()).catch(()=>({}));
 
+      const txFrom = (txData?.result?.from||'').toLowerCase();
+      const transferTo = ('0x'+log.topics[2].slice(26)).toLowerCase();
+      const transferFrom = ('0x'+log.topics[1].slice(26)).toLowerCase();
+
+      // BUY: tx sender received tokens (txFrom == transferTo)
+      // SELL: tx sender sent tokens (txFrom == transferFrom)
+      if(txFrom && txFrom === transferFrom){
+        continue; // This is a sell - skip it
+      }
+
       const buyer = txData?.result?.from || '0x'+log.topics[2].slice(26);
-      // Skip if buyer is a known router/pool = this is a sell not a buy
       const shortBuyer = buyer.slice(0,6)+'...'+buyer.slice(-4);
 
       // Now fetch wallet balance for the ACTUAL buyer
