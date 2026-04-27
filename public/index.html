@@ -290,7 +290,7 @@ function hit(){
     if(Math.sqrt(dx*dx+dy*dy)<it.r+14){
       it.alive=false;
       if(it.t.good){
-        const g=it.t.val*combo;score+=g;combo=Math.min(combo+1,10);cTimer=140;
+        const g=Math.round(it.t.val*combo*_scoreMultiplier);score+=g;combo=Math.min(combo+1,10);cTimer=140;
         if(it.t.id==='U'){uCount++;checkHighScore();}
         spawnParts(it.x,it.y,it.t.shape==='unity'?'#888':'#f5c842',12);
         spawnFloat(it.x,it.y-it.r,it.t.shape==='unity'?'SIGNAL CAUGHT +'+g:'PERFECT SIGNAL! +'+g,it.t.shape==='unity'?'#fff':'#f5c842');
@@ -646,7 +646,8 @@ function skipToRules(){
 
 function startGame(){
   gameOver=false;
-  cutsceneDone=true; // ensure cutscene doesn't replay
+  cutsceneDone=true;
+  detectFPS(); // ensure cutscene doesn't replay
   document.getElementById('gc').style.visibility='visible';
   enterMobileGame();
   document.getElementById('rules-overlay').style.display='none';
@@ -655,28 +656,17 @@ function startGame(){
   score=0;lives=3;wave=1;combo=1;cTimer=0;uCount=0;
   items=[];parts=[];floats=[];
   frame=0;lastSpawn=0;spawnRate=55;shake=0;blinkT=0;
-  _lastTime=0;_accum=0; // reset timing
   mx=W/2;my=H-40;
   const go=document.getElementById('go-overlay');
   if(go)go.remove();
   loop();
 }
-let _lastTime=0,_accum=0;
-const STEP=1000/60; // fixed 60fps physics step
-function loop(timestamp){
+function loop(){
   if(!cutsceneDone){drawCutscene();requestAnimationFrame(loop);return;}
   if(!gameStarted||gameOver){return;}
-  // First frame after start - just record time, don't step
-  if(_lastTime===0){_lastTime=timestamp;requestAnimationFrame(loop);return;}
-  const _delta=Math.min(timestamp-_lastTime,50);
-  _lastTime=timestamp;
-  _accum+=_delta;
-  let _steps=0;
-  while(_accum>=STEP&&_steps<3){_accum-=STEP;_steps++;}
-  if(_steps===0){requestAnimationFrame(loop);return;}
-  frame+=_steps;blinkT+=_steps;
-  if(cTimer>0){cTimer-=_steps;if(cTimer<=0){cTimer=0;combo=1;}}
-  if(Math.floor(frame/600)>Math.floor((frame-_steps)/600)){wave++;spawnRate=Math.max(35,spawnRate-8);}
+  frame++;blinkT++;
+  if(cTimer>0){cTimer--;if(cTimer===0)combo=1;}
+  if(frame%600===0){wave++;spawnRate=Math.max(35,spawnRate-8);}
   if(frame-lastSpawn>spawnRate){spawn();lastSpawn=frame;}
   if(shake>0)shake--;
   items=items.filter(i=>i.alive&&i.y<H+50);
