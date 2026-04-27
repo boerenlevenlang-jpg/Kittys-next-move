@@ -666,16 +666,13 @@ const STEP=1000/60; // fixed 60fps physics step
 function loop(timestamp){
   if(!cutsceneDone){drawCutscene();requestAnimationFrame(loop);return;}
   if(!gameStarted||gameOver){return;}
-  const _delta=Math.min(timestamp-_lastTime,100); // cap at 100ms
+  // First frame after start - just record time, don't step
+  if(_lastTime===0){_lastTime=timestamp;requestAnimationFrame(loop);return;}
+  const _delta=Math.min(timestamp-_lastTime,50);
   _lastTime=timestamp;
   _accum+=_delta;
-  // Run as many physics steps as needed to catch up
-  // This keeps game speed identical on 30fps, 60fps, or 120fps
   let _steps=0;
-  while(_accum>=STEP&&_steps<3){
-    _accum-=STEP;
-    _steps++;
-  }
+  while(_accum>=STEP&&_steps<3){_accum-=STEP;_steps++;}
   if(_steps===0){requestAnimationFrame(loop);return;}
   frame+=_steps;blinkT+=_steps;
   if(cTimer>0){cTimer-=_steps;if(cTimer<=0){cTimer=0;combo=1;}}
