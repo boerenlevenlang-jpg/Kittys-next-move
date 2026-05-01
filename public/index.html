@@ -745,7 +745,7 @@ function detectFPS(){
     if(frames<30){requestAnimationFrame(count);}
     else{
       const fps=frames/((performance.now()-start)/1000);
-      _scoreMultiplier = fps<40 ? 0.5 : 1;
+      _scoreMultiplier = fps<40 ? 0.333 : 1;
     }
   }
   requestAnimationFrame(count);
