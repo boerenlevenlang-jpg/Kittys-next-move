@@ -10,7 +10,7 @@ const BOT_TOKEN    = process.env.BOT_TOKEN    || '';
 const CHANNEL_ID   = process.env.CHANNEL_ID   || '@unityoneth';
 const PORT         = parseInt(process.env.PORT || '3000', 10);
 const ADMIN_SECRET = process.env.ADMIN_SECRET  || 'changeme';
-const PRIZE        = '1,000,000,000,000';
+const PRIZE        = '100,000,000,000';
 const CA           = '0xFd0bb211d479710dFa01d3d98751767F51edb2d9';
 const UNISWAP_URL  = 'https://app.uniswap.org/explore/tokens/ethereum/0xfd0bb211d479710dfa01d3d98751767f51edb2d9';
 const DEX_URL      = 'https://www.dextools.io/app/ether/pair-explorer/0xc85589c893c9a4cc7ea0b193095712aca1b8441c';
@@ -434,7 +434,7 @@ async function checkBuys(){
         'CgACAgUAAxkBAAIBUmnrjSSu4LzTAYQfOiTC9WDzr7y6AAL8HwACM2VgVwNkcszPSCOXOwQ',
         caption, null,
         {reply_markup:{inline_keyboard:[
-          [{text:'🎮 Play in Telegram - Win 1 Trillion $UNITY',url:'https://t.me/unityoneth_bot'}],
+          [{text:'🎮 Play in Telegram - Win 100 Billion $UNITY',url:'https://t.me/unityoneth_bot'}],
           [{text:'Buy $UNITY',url:UNISWAP_URL},{text:'Chart',url:DEX_URL}]
         ]}}
       );
